@@ -1,51 +1,22 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { searchLogsHandler, searchLogsSchema } from "./tools/logs.js";
+import { searchLogsHandler, searchLogsZodSchema } from "./tools/logs.js";
 
-const server = new Server({
+// McpServerを使用してサーバーを作成
+const server = new McpServer({
   name: "datadog-mcp-server",
   version: "1.0.0",
-  capabilities: {
-    tools: {},
-  },
 });
 
-// ツール一覧のリクエストハンドラーを設定
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "search_logs",
-        description: "Datadogのログを検索します",
-        parameters: searchLogsSchema,
-      },
-    ],
-  };
-});
-
-// ツール呼び出しのリクエストハンドラーを設定
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name: toolName, parameters } = request.params;
-
-  // switch文を使ってツールを振り分け
-  switch (toolName) {
-    case "search_logs":
-      return await searchLogsHandler(parameters);
-    default:
-      return {
-        content: [
-          {
-            type: "text",
-            text: `ツール "${toolName}" は見つかりませんでした`,
-          },
-        ],
-        isError: true,
-      };
-  }
+// ツールを登録
+server.tool("search_logs", "Datadogのログを検索するツール", searchLogsZodSchema.shape, (args) => {
+  return searchLogsHandler(args).then(result => ({
+    content: result.content.map(item => ({
+      type: "text" as const,
+      text: item.text || "テキストなし"
+    })),
+    isError: result.isError
+  }));
 });
 
 const main = async () => {
@@ -53,12 +24,6 @@ const main = async () => {
   if (!process.env.DD_API_KEY || !process.env.DD_APP_KEY) {
     console.error(
       "警告: Datadog API_KEY または APP_KEY が設定されていません。Datadogツールは正しく機能しない可能性があります。"
-    );
-    console.error(
-      "環境変数を設定するか、--api-key と --app-key コマンドライン引数を使用してください。"
-    );
-    console.error(
-      "例: node build/index.js --api-key YOUR_API_KEY --app-key YOUR_APP_KEY"
     );
   }
 
