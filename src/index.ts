@@ -1,176 +1,101 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 import {
-  AlertsResponse,
-  ForecastPeriod,
-  ForecastResponse,
-  PointsResponse,
-} from "./types.js";
-import { formatAlert, makeNWSRequest } from "./utils.js";
+  ListToolsRequestSchema,
+  CallToolRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { listMonitorsHandler, listMonitorsSchema } from "./tools/monitors.js";
 
-const NWS_API_BASE = "https://api.weather.gov";
+// コマンドライン引数をパースする関数
+const parseArgs = () => {
+  const args = process.argv.slice(2);
+  const result: { apiKey?: string; appKey?: string } = {};
 
-// Create server instance
-const server = new McpServer({
-  name: "weather",
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--api-key" && i + 1 < args.length) {
+      result.apiKey = args[i + 1];
+      i++;
+    } else if (args[i] === "--app-key" && i + 1 < args.length) {
+      result.appKey = args[i + 1];
+      i++;
+    }
+  }
+
+  return result;
+};
+
+const server = new Server({
+  name: "datadog-mcp-server",
   version: "1.0.0",
   capabilities: {
-    resources: {},
     tools: {},
   },
 });
 
-// Register weather tools
-server.tool(
-  "get-alerts",
-  "Get weather alerts for a state",
-  {
-    state: z.string().length(2).describe("Two-letter state code (e.g. CA, NY)"),
-  },
-  async ({ state }) => {
-    const stateCode = state.toUpperCase();
-    const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
-    const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
+// ツール一覧のリクエストハンドラーを設定
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "list_monitors",
+        description: "Datadogのモニター一覧を取得します",
+        parameters: listMonitorsSchema,
+      },
+    ],
+  };
+});
 
-    if (!alertsData) {
+// ツール呼び出しのリクエストハンドラーを設定
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name: toolName, parameters } = request.params;
+
+  // switch文を使ってツールを振り分け
+  switch (toolName) {
+    case "list_monitors":
+      return await listMonitorsHandler(parameters);
+    default:
       return {
         content: [
           {
             type: "text",
-            text: "Failed to retrieve alerts data",
+            text: `ツール "${toolName}" は見つかりませんでした`,
           },
         ],
+        isError: true,
       };
-    }
-
-    const features = alertsData.features || [];
-    if (features.length === 0) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `No active alerts for ${stateCode}`,
-          },
-        ],
-      };
-    }
-
-    const formattedAlerts = features.map(formatAlert);
-    const alertsText = `Active alerts for ${stateCode}:\n\n${formattedAlerts.join(
-      "\n"
-    )}`;
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: alertsText,
-        },
-      ],
-    };
   }
-);
+});
 
-server.tool(
-  "get-forecast",
-  "Get weather forecast for a location",
-  {
-    latitude: z.number().min(-90).max(90).describe("Latitude of the location"),
-    longitude: z
-      .number()
-      .min(-180)
-      .max(180)
-      .describe("Longitude of the location"),
-  },
-  async ({ latitude, longitude }) => {
-    // Get grid point data
-    const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(
-      4
-    )},${longitude.toFixed(4)}`;
-    const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
+const main = async () => {
+  // コマンドライン引数をパース
+  const args = parseArgs();
 
-    if (!pointsData) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}. This location may not be supported by the NWS API (only US locations are supported).`,
-          },
-        ],
-      };
-    }
+  // コマンドライン引数で指定されたキーがあれば環境変数を上書き
+  if (args.apiKey) {
+    process.env.DD_API_KEY = args.apiKey;
+  }
 
-    const forecastUrl = pointsData.properties?.forecast;
-    if (!forecastUrl) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Failed to get forecast URL from grid point data",
-          },
-        ],
-      };
-    }
+  if (args.appKey) {
+    process.env.DD_APP_KEY = args.appKey;
+  }
 
-    // Get forecast data
-    const forecastData = await makeNWSRequest<ForecastResponse>(forecastUrl);
-    if (!forecastData) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Failed to retrieve forecast data",
-          },
-        ],
-      };
-    }
-
-    const periods = forecastData.properties?.periods || [];
-    if (periods.length === 0) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "No forecast periods available",
-          },
-        ],
-      };
-    }
-
-    // Format forecast periods
-    const formattedForecast = periods.map((period: ForecastPeriod) =>
-      [
-        `${period.name || "Unknown"}:`,
-        `Temperature: ${period.temperature || "Unknown"}°${
-          period.temperatureUnit || "F"
-        }`,
-        `Wind: ${period.windSpeed || "Unknown"} ${period.windDirection || ""}`,
-        `${period.shortForecast || "No forecast available"}`,
-        "---",
-      ].join("\n")
+  // DatadogのAPIキーが設定されているか確認
+  if (!process.env.DD_API_KEY || !process.env.DD_APP_KEY) {
+    console.error(
+      "警告: Datadog API_KEY または APP_KEY が設定されていません。Datadogツールは正しく機能しない可能性があります。"
     );
-
-    const forecastText = `Forecast for ${latitude}, ${longitude}:\n\n${formattedForecast.join(
-      "\n"
-    )}`;
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: forecastText,
-        },
-      ],
-    };
+    console.error(
+      "環境変数を設定するか、--api-key と --app-key コマンドライン引数を使用してください。"
+    );
+    console.error(
+      "例: node build/index.js --api-key YOUR_API_KEY --app-key YOUR_APP_KEY"
+    );
   }
-);
 
-async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Weather MCP Server running on stdio");
-}
+  console.error("Datadog MCP Server が stdio で動作中");
+};
 
 main().catch((error) => {
   console.error("Fatal error in main():", error);
