@@ -4,25 +4,7 @@ import {
   ListToolsRequestSchema,
   CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listMonitorsHandler, listMonitorsSchema } from "./tools/monitors.js";
-
-// コマンドライン引数をパースする関数
-const parseArgs = () => {
-  const args = process.argv.slice(2);
-  const result: { apiKey?: string; appKey?: string } = {};
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--api-key" && i + 1 < args.length) {
-      result.apiKey = args[i + 1];
-      i++;
-    } else if (args[i] === "--app-key" && i + 1 < args.length) {
-      result.appKey = args[i + 1];
-      i++;
-    }
-  }
-
-  return result;
-};
+import { searchLogsHandler, searchLogsSchema } from "./tools/logs.js";
 
 const server = new Server({
   name: "datadog-mcp-server",
@@ -37,9 +19,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "list_monitors",
-        description: "Datadogのモニター一覧を取得します",
-        parameters: listMonitorsSchema,
+        name: "search_logs",
+        description: "Datadogのログを検索します",
+        parameters: searchLogsSchema,
       },
     ],
   };
@@ -51,8 +33,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   // switch文を使ってツールを振り分け
   switch (toolName) {
-    case "list_monitors":
-      return await listMonitorsHandler(parameters);
+    case "search_logs":
+      return await searchLogsHandler(parameters);
     default:
       return {
         content: [
@@ -67,18 +49,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 const main = async () => {
-  // コマンドライン引数をパース
-  const args = parseArgs();
-
-  // コマンドライン引数で指定されたキーがあれば環境変数を上書き
-  if (args.apiKey) {
-    process.env.DD_API_KEY = args.apiKey;
-  }
-
-  if (args.appKey) {
-    process.env.DD_APP_KEY = args.appKey;
-  }
-
   // DatadogのAPIキーが設定されているか確認
   if (!process.env.DD_API_KEY || !process.env.DD_APP_KEY) {
     console.error(
