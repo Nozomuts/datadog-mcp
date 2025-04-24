@@ -35,9 +35,6 @@ export const searchLogsZodSchema = z.object({
     ),
 });
 
-// パラメータの型定義
-export type SearchLogsParams = z.infer<typeof searchLogsZodSchema>;
-
 // ログ検索ツールの実装
 export const searchLogsHandler = async (parameters: unknown) => {
   // パラメータのバリデーション
@@ -75,11 +72,9 @@ export const searchLogsHandler = async (parameters: unknown) => {
     )} から ${formatTime(actualEndTime)}`;
 
     // 検索結果のサマリーを作成
-    const summaryText = `
-クエリ: ${query || "*"}
-${timeRangeText}
-取得件数: ${logs.length}
-`;
+    const summaryText = `クエリ: ${query || "*"}\n${timeRangeText}\n取得件数: ${
+      logs.length
+    }`;
 
     // ログを整形して表示
     const logsFormatted = logs

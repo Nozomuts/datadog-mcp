@@ -10,11 +10,6 @@ export type Log = {
   message?: string;
 };
 
-export type LogSearchResponse = {
-  status: string;
-  logs: Log[];
-};
-
 // Datadog API リクエストパラメータ型定義
 export type LogSearchParams = {
   query?: string;
