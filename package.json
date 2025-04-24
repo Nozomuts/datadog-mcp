@@ -1,10 +1,10 @@
 {
-  "name": "first-mcp",
+  "name": "dd-mcp",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "bin": {
-    "weather": "./build/index.js"
+    "datadog": "./build/index.js"
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js"
