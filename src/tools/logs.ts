@@ -36,7 +36,15 @@ export const searchLogsZodSchema = z.object({
 });
 
 // ログ検索ツールの実装
-export const searchLogsHandler = async (parameters: unknown) => {
+export const searchLogsHandler = async (
+  parameters: unknown
+): Promise<{
+  content: {
+    type: "text";
+    text: string;
+  }[];
+  isError: boolean;
+}> => {
   // パラメータのバリデーション
   const validation = searchLogsZodSchema.safeParse(parameters);
 
@@ -108,6 +116,7 @@ export const searchLogsHandler = async (parameters: unknown) => {
           text: JSON.stringify(logs, null, 2),
         },
       ],
+      isError: false,
     };
   } catch (error: any) {
     return {

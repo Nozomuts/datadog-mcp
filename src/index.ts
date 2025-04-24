@@ -9,15 +9,18 @@ const server = new McpServer({
 });
 
 // ツールを登録
-server.tool("search_logs", "Datadogのログを検索するツール", searchLogsZodSchema.shape, (args) => {
-  return searchLogsHandler(args).then(result => ({
-    content: result.content.map(item => ({
-      type: "text" as const,
-      text: item.text || "テキストなし"
-    })),
-    isError: result.isError
-  }));
-});
+server.tool(
+  "search_logs",
+  "Datadogのログを検索するツール",
+  searchLogsZodSchema.shape,
+  async (args) => {
+    const result = await searchLogsHandler(args);
+    return {
+      content: result.content,
+      isError: result.isError,
+    };
+  }
+);
 
 const main = async () => {
   // DatadogのAPIキーが設定されているか確認
