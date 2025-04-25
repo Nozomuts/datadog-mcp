@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { searchLogs } from "../datadog/client.js";
-import type { Log } from "../datadog/types.js";
+import type { Log, ToolResponse } from "../types.js";
 
 // ログ検索ツールのZodスキーマ定義
 export const searchLogsZodSchema = z.object({
@@ -35,15 +35,6 @@ export const searchLogsZodSchema = z.object({
       "ソート順（asc=古い順、desc=新しい順、オプション、デフォルトはdesc）"
     ),
 });
-
-// レスポンス型の定義
-type ToolResponse = {
-  content: {
-    type: "text";
-    text: string;
-  }[];
-  isError: boolean;
-};
 
 // 日付を日本語形式の文字列に変換する関数
 const formatDate = (date: Date): string => {

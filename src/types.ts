@@ -1,3 +1,5 @@
+// 共通型定義
+
 // Datadogのログ応答型定義
 export type Log = {
   id: string;
@@ -18,4 +20,13 @@ export type LogSearchParams = {
   limit?: number;
   sort?: "asc" | "desc";
   index?: string;
+};
+
+// ツールレスポンス型定義
+export type ToolResponse = {
+  content: {
+    type: "text";
+    text: string;
+  }[];
+  isError: boolean;
 };
