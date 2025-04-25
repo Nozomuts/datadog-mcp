@@ -1,5 +1,6 @@
+// filepath: /Users/nozomu.tsuruta/dd-mcp/src/datadog/logs/search.ts
 import { createConfiguration } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-common/configuration.js";
-import { Log, LogSearchParams } from "../types.js";
+import { Log, LogSearchParams } from "../../types.js";
 import { v2 } from "@datadog/datadog-api-client";
 import { LogsApiListLogsGetRequest } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v2/index.js";
 

@@ -1,8 +1,5 @@
-import {
-  searchSpans,
-  SearchSpansResult,
-  aggregateSpans,
-} from "../datadog/spans.js";
+import { searchSpans, SearchSpansResult } from "../datadog/spans/search.js";
+import { aggregateSpans } from "../datadog/spans/aggregate.js";
 import {
   SpanSearchParams,
   ToolResponse,
@@ -60,7 +57,9 @@ export const aggregateSpansZodSchema = z.object({
   groupBy: z
     .array(z.string())
     .optional()
-    .describe("グループ化する属性の配列（例：['service', 'resource_name', 'status']）"),
+    .describe(
+      "グループ化する属性の配列（例：['service', 'resource_name', 'status']）"
+    ),
   aggregation: z
     .string()
     .optional()
