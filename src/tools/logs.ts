@@ -35,10 +35,6 @@ export const searchLogsZodSchema = z.object({
     ),
 });
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleString("ja-JP");
-};
-
 const formatLogs = (logs: Log[]): string => {
   return logs
     .map((log) => {
@@ -59,9 +55,9 @@ const generateSummaryText = (
   endDate: Date,
   logsCount: number
 ): string => {
-  return `クエリ: ${query || "*"}\n検索期間: ${formatDate(
-    startDate
-  )} から ${formatDate(endDate)}\n取得件数: ${logsCount}`;
+  return `クエリ: ${query || "*"}\n検索期間: ${startDate.toLocaleString(
+    "ja-JP"
+  )} から ${endDate.toLocaleString("ja-JP")}\n取得件数: ${logsCount}`;
 };
 
 const parseDate = (dateString: string | undefined, defaultDate: Date): Date => {
@@ -115,7 +111,6 @@ const createSuccessResponse = (
 export const searchLogsHandler = async (
   parameters: unknown
 ): Promise<ToolResponse> => {
-  // パラメータのバリデーション
   const validation = searchLogsZodSchema.safeParse(parameters);
 
   if (!validation.success) {
@@ -132,7 +127,6 @@ export const searchLogsHandler = async (
     const oneHourAgo = new Date(now);
     oneHourAgo.setHours(now.getHours() - 1);
 
-    // 日付文字列をDateオブジェクトに変換
     const startDate = parseDate(startTime, oneHourAgo);
     const endDate = parseDate(endTime, now);
 
@@ -144,7 +138,6 @@ export const searchLogsHandler = async (
       sort,
     });
 
-    // サマリーテキストとフォーマットされたログを生成
     const summaryText = generateSummaryText(
       query,
       startDate,
