@@ -2,7 +2,6 @@ import { z } from "zod";
 import { searchLogs } from "../datadog/client.js";
 import type { Log, ToolResponse } from "../types.js";
 
-// ログ検索ツールのZodスキーマ定義
 export const searchLogsZodSchema = z.object({
   query: z
     .string()
@@ -36,12 +35,10 @@ export const searchLogsZodSchema = z.object({
     ),
 });
 
-// 日付を日本語形式の文字列に変換する関数
 const formatDate = (date: Date): string => {
   return date.toLocaleString("ja-JP");
 };
 
-// ログを人間が読みやすい形式にフォーマットする関数
 const formatLogs = (logs: Log[]): string => {
   return logs
     .map((log) => {
@@ -56,7 +53,6 @@ const formatLogs = (logs: Log[]): string => {
     .join("\n\n");
 };
 
-// 検索結果のサマリーテキストを生成する関数
 const generateSummaryText = (
   query: string | undefined,
   startDate: Date,
@@ -68,7 +64,6 @@ const generateSummaryText = (
   )} から ${formatDate(endDate)}\n取得件数: ${logsCount}`;
 };
 
-// 日付文字列をDateオブジェクトに変換する関数（無効な日付の場合はデフォルト値を使用）
 const parseDate = (dateString: string | undefined, defaultDate: Date): Date => {
   if (!dateString) return defaultDate;
 
@@ -81,7 +76,6 @@ const parseDate = (dateString: string | undefined, defaultDate: Date): Date => {
   }
 };
 
-// エラーレスポンスを生成する関数
 const createErrorResponse = (message: string): ToolResponse => ({
   content: [
     {
@@ -92,7 +86,6 @@ const createErrorResponse = (message: string): ToolResponse => ({
   isError: true,
 });
 
-// 成功レスポンスを生成する関数
 const createSuccessResponse = (
   summaryText: string,
   formattedLogs: string,
@@ -119,7 +112,6 @@ const createSuccessResponse = (
   isError: false,
 });
 
-// ログ検索ツールの実装
 export const searchLogsHandler = async (
   parameters: unknown
 ): Promise<ToolResponse> => {

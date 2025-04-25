@@ -1,6 +1,3 @@
-// 共通型定義
-
-// Datadogのログ応答型定義
 export type Log = {
   id: string;
   host?: string;
@@ -12,7 +9,6 @@ export type Log = {
   message?: string;
 };
 
-// Datadog API リクエストパラメータ型定義
 export type LogSearchParams = {
   query?: string;
   startTime?: Date;
@@ -22,7 +18,6 @@ export type LogSearchParams = {
   index?: string;
 };
 
-// ツールレスポンス型定義
 export type ToolResponse = {
   content: {
     type: "text";

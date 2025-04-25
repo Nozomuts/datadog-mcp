@@ -2,13 +2,11 @@ import { client, v2 } from "@datadog/datadog-api-client";
 import { Log, LogSearchParams } from "./types.js";
 import { LogsApiListLogsGetRequest } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v2/index.js";
 
-// API設定の型定義
 type ApiConfig = {
   apiKey: string;
   appKey: string;
 };
 
-// Datadog API設定を作成する関数
 const createConfiguration = (config?: ApiConfig) => {
   return client.createConfiguration({
     authMethods: {
@@ -18,7 +16,6 @@ const createConfiguration = (config?: ApiConfig) => {
   });
 };
 
-// 検索パラメータを構築する関数
 const buildSearchParams = (
   params?: LogSearchParams
 ): LogsApiListLogsGetRequest => {
@@ -39,7 +36,6 @@ const buildSearchParams = (
   };
 };
 
-// APIレスポンスからログオブジェクトに変換する関数
 const transformLogData = (logData: v2.Log): Log => ({
   id: logData.id || "",
   host: logData.attributes?.host,
@@ -53,7 +49,6 @@ const transformLogData = (logData: v2.Log): Log => ({
   message: logData.attributes?.message,
 });
 
-// ログの検索
 export const searchLogs = async (params?: LogSearchParams): Promise<Log[]> => {
   try {
     const configuration = createConfiguration();
