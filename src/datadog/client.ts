@@ -1,36 +1,64 @@
 import { client, v2 } from "@datadog/datadog-api-client";
 import { Log, LogSearchParams } from "./types.js";
+import { LogsApiListLogsGetRequest } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v2/index.js";
 
-// Datadog API設定
-const createConfiguration = () => {
+// API設定の型定義
+type ApiConfig = {
+  apiKey: string;
+  appKey: string;
+};
+
+// Datadog API設定を作成する関数
+const createConfiguration = (config?: ApiConfig) => {
   return client.createConfiguration({
     authMethods: {
-      apiKeyAuth: process.env.DD_API_KEY || "",
-      appKeyAuth: process.env.DD_APP_KEY || "",
+      apiKeyAuth: config?.apiKey || process.env.DD_API_KEY || "",
+      appKeyAuth: config?.appKey || process.env.DD_APP_KEY || "",
     },
   });
 };
+
+// 検索パラメータを構築する関数
+const buildSearchParams = (
+  params?: LogSearchParams
+): LogsApiListLogsGetRequest => {
+  const now = new Date();
+  const oneHourAgo = new Date(now);
+  oneHourAgo.setHours(now.getHours() - 1);
+
+  const startTime = params?.startTime ?? oneHourAgo;
+  const endTime = params?.endTime ?? now;
+  const sort = params?.sort === "asc" ? "timestamp" : "-timestamp";
+
+  return {
+    filterQuery: params?.query || "*",
+    pageLimit: params?.limit ?? 25,
+    filterFrom: startTime,
+    filterTo: endTime,
+    sort,
+  };
+};
+
+// APIレスポンスからログオブジェクトに変換する関数
+const transformLogData = (logData: v2.Log): Log => ({
+  id: logData.id || "",
+  host: logData.attributes?.host,
+  service: logData.attributes?.service,
+  status: logData.attributes?.status,
+  timestamp: logData.attributes?.timestamp
+    ? new Date(logData.attributes.timestamp).toISOString()
+    : undefined,
+  tags: logData.attributes?.tags || [],
+  attributes: logData.attributes || {},
+  message: logData.attributes?.message,
+});
 
 // ログの検索
 export const searchLogs = async (params?: LogSearchParams): Promise<Log[]> => {
   try {
     const configuration = createConfiguration();
     const logsApi = new v2.LogsApi(configuration);
-
-    const now = Math.floor(Date.now() / 1000);
-    const defaultEndTime = now;
-    const defaultStartTime = now - 3600; // デフォルトは過去1時間
-
-    const startTime = params?.startTime ?? defaultStartTime;
-    const endTime = params?.endTime ?? defaultEndTime;
-
-    // 検索APIパラメータの構築
-    const searchParams = {
-      filterQuery: params?.query || "*",
-      pageLimit: params?.limit ?? 25,
-      startAt: startTime * 1000,
-      endAt: endTime * 1000,
-    };
+    const searchParams = buildSearchParams(params);
 
     const response = await logsApi.listLogsGet(searchParams);
 
@@ -38,20 +66,10 @@ export const searchLogs = async (params?: LogSearchParams): Promise<Log[]> => {
       return [];
     }
 
-    return response.data.map((log) => ({
-      id: log.id || "",
-      host: log.attributes?.host,
-      service: log.attributes?.service,
-      status: log.attributes?.status,
-      timestamp: log.attributes?.timestamp
-        ? new Date(log.attributes.timestamp).toISOString()
-        : undefined,
-      tags: log.attributes?.tags || [],
-      attributes: log.attributes || {},
-      message: log.attributes?.message,
-    }));
-  } catch (error) {
-    console.error("Error searching logs:", error);
-    throw new Error(`Datadog API error: ${error}`);
+    return response.data.map(transformLogData);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error searching logs: ${errorMessage}`);
+    throw new Error(`Datadog API error: ${errorMessage}`);
   }
 };

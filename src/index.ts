@@ -28,6 +28,7 @@ const main = async () => {
     console.error(
       "警告: Datadog API_KEY または APP_KEY が設定されていません。Datadogツールは正しく機能しない可能性があります。"
     );
+    return;
   }
 
   const transport = new StdioServerTransport();

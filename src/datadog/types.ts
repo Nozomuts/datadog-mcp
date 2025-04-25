@@ -13,8 +13,8 @@ export type Log = {
 // Datadog API リクエストパラメータ型定義
 export type LogSearchParams = {
   query?: string;
-  startTime?: number;
-  endTime?: number;
+  startTime?: Date;
+  endTime?: Date;
   limit?: number;
   sort?: "asc" | "desc";
   index?: string;
