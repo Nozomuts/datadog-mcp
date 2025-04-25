@@ -43,6 +43,36 @@ export type SpanSearchParams = {
   cursor?: string;
 };
 
+export type SpanAggregationParams = {
+  query?: string;
+  startTime?: Date;
+  endTime?: Date;
+  groupBy?: string[];
+  aggregation?: string;
+  interval?: string;
+};
+
+export type SpanAggregationResult = {
+  buckets: SpanBucket[];
+  elapsed?: number;
+  requestId?: string;
+  status?: string;
+  warnings?: SpanWarning[];
+};
+
+export type SpanBucket = {
+  id: string;
+  by?: Record<string, string>;
+  compute?: Record<string, any>;
+  computes?: Record<string, { description?: string; type?: string }>;
+};
+
+export type SpanWarning = {
+  code?: string;
+  detail?: string;
+  title?: string;
+};
+
 export type ToolResponse = {
   content: {
     type: "text";

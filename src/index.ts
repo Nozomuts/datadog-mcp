@@ -1,7 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { searchLogsHandler, searchLogsZodSchema } from "./tools/logs.js";
-import { searchSpansHandler, searchSpansZodSchema } from "./tools/spans.js";
+import {
+  searchSpansHandler,
+  searchSpansZodSchema,
+  aggregateSpansHandler,
+  aggregateSpansZodSchema,
+} from "./tools/spans.js";
 
 const server = new McpServer({
   name: "datadog-mcp-server",
@@ -20,6 +25,13 @@ server.tool(
   "Datadogのトレースspanを検索するツール",
   searchSpansZodSchema.shape,
   searchSpansHandler
+);
+
+server.tool(
+  "aggregate_spans",
+  "Datadogのトレースspanを集計するツール",
+  aggregateSpansZodSchema.shape,
+  aggregateSpansHandler
 );
 
 const main = async () => {
