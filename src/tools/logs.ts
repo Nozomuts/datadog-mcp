@@ -10,16 +10,16 @@ export const searchLogsZodSchema = z.object({
       "ログを検索するためのクエリ文字列（オプション、デフォルトは「*」）"
     ),
   startTime: z
-    .string()
+    .number()
     .optional()
     .describe(
-      "検索開始時間（ISO形式の日時文字列、例：2025-04-24T10:00:00Z、オプション、デフォルトは1時間前）"
+      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは1時間前）"
     ),
   endTime: z
-    .string()
+    .number()
     .optional()
     .describe(
-      "検索終了時間（ISO形式の日時文字列、例：2025-04-24T11:00:00Z、オプション、デフォルトは現在時刻）"
+      "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
     ),
   limit: z
     .number()
@@ -60,11 +60,12 @@ const generateSummaryText = (
   )} から ${endDate.toLocaleString("ja-JP")}\n取得件数: ${logsCount}`;
 };
 
-const parseDate = (dateString: string | undefined, defaultDate: Date): Date => {
-  if (!dateString) return defaultDate;
+const parseDate = (timestamp: number | undefined, defaultDate: Date): Date => {
+  if (!timestamp) return defaultDate;
 
   try {
-    const date = new Date(dateString);
+    // UNIXタイムスタンプ（秒）をミリ秒に変換して日付オブジェクトを作成
+    const date = new Date(timestamp * 1000);
     // 無効な日付の場合はNaNが返されるので、それを検出
     return isNaN(date.getTime()) ? defaultDate : date;
   } catch (e) {
