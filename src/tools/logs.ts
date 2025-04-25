@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { searchLogs } from "../datadog/client.js";
+import { searchLogs } from "../datadog/logs.js";
 import type { Log, ToolResponse } from "../types.js";
 
 export const searchLogsZodSchema = z.object({
