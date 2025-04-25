@@ -11,13 +11,7 @@ server.tool(
   "search_logs",
   "Datadogのログを検索するツール",
   searchLogsZodSchema.shape,
-  async (args) => {
-    const result = await searchLogsHandler(args);
-    return {
-      content: result.content,
-      isError: result.isError,
-    };
-  }
+  searchLogsHandler
 );
 
 const main = async () => {
