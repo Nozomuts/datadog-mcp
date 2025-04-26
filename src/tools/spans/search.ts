@@ -97,6 +97,8 @@ export const searchSpansHandler = async (
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`Spanの検索中にエラーが発生しました: ${errorMessage}`);
+    return createErrorResponse(
+      `Spanの検索中にエラーが発生しました: ${errorMessage}`
+    );
   }
 };

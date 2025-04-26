@@ -4,7 +4,7 @@ import { createSuccessResponse, createErrorResponse } from "../../utils.js";
 import type {
   SpanAggregationParams,
   SpanAggregationResult,
-  ToolResponse
+  ToolResponse,
 } from "../../types.js";
 
 export const aggregateSpansZodSchema = z.object({
@@ -117,6 +117,8 @@ export const aggregateSpansHandler = async (
     ]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`Spanの集計中にエラーが発生しました: ${errorMessage}`);
+    return createErrorResponse(
+      `Spanの集計中にエラーが発生しました: ${errorMessage}`
+    );
   }
 };
