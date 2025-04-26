@@ -41,6 +41,13 @@ export const aggregateSpansZodSchema = z.object({
     .optional()
     .default("5m")
     .describe("時系列データの間隔（オプション、デフォルトは'5m'）"),
+  type: z
+    .enum(["timeseries", "total"])
+    .optional()
+    .default("timeseries")
+    .describe(
+      "集計のタイプ（'timeseries'または'total'、デフォルトは'timeseries'）"
+    ),
 });
 
 const formatAggregationResult = (result: SpanAggregationResult): string => {
@@ -111,8 +118,6 @@ export const aggregateSpansHandler = async (
     ]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(
-      `スパン集計エラー: ${errorMessage}`
-    );
+    return createErrorResponse(`スパン集計エラー: ${errorMessage}`);
   }
 };

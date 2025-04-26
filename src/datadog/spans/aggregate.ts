@@ -13,7 +13,8 @@ export const aggregateSpans = async (
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
 
-    const { filterFrom, filterTo, filterQuery, aggregation, interval } = params;
+    const { filterFrom, filterTo, filterQuery, aggregation, interval, type } =
+      params;
 
     const requestBody: v2.SpansApiAggregateSpansRequest = {
       body: {
@@ -23,7 +24,7 @@ export const aggregateSpans = async (
               {
                 aggregation: aggregation as v2.SpansAggregationFunction,
                 interval: interval,
-                type: "timeseries",
+                type: type,
               },
             ],
             filter: {

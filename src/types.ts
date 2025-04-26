@@ -59,8 +59,8 @@ export type SpanAggregationParams = {
   groupBy?: string[];
   aggregation: string;
   interval: string;
+  type: "timeseries" | "total";
 };
-
 
 export type SpanAggregationResult = {
   buckets: SpanBucket[];
