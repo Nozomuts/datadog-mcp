@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { aggregateSpans } from "../../datadog/spans/aggregate.js";
-import { createSuccessResponse, createErrorResponse } from "../../utils.js";
-import type {
-  SpanAggregationParams,
-  SpanAggregationResult,
-  ToolResponse,
-} from "../../types.js";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  parseDate,
+} from "../../utils.js";
+import type { SpanAggregationResult, ToolResponse } from "../../types.js";
 
 export const aggregateSpansZodSchema = z.object({
   query: z
@@ -102,22 +102,21 @@ export const aggregateSpansHandler = async (
   const { query, aggregation, startTime, endTime, interval, groupBy } =
     validation.data;
 
+  const now = new Date();
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+  const startDate = parseDate(startTime, fifteenMinutesAgo);
+  const endDate = parseDate(endTime, now);
+
   try {
-    const params: SpanAggregationParams = {
-      query,
-      aggregation,
-      interval,
+    const result = await aggregateSpans({
+      query: query || "*",
+      aggregation: aggregation || "count",
+      interval: interval || "5m",
+      startTime: startDate,
+      endTime: endDate,
       groupBy,
-    };
+    });
 
-    if (startTime) {
-      params.startTime = new Date(startTime * 1000);
-    }
-    if (endTime) {
-      params.endTime = new Date(endTime * 1000);
-    }
-
-    const result = await aggregateSpans(params);
     const formattedResult = formatAggregationResult(result);
 
     return createSuccessResponse([

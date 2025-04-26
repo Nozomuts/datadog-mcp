@@ -86,21 +86,18 @@ export const searchLogsHandler = async (
 
   const { query, startTime, endTime, limit, sort } = validation.data;
 
+  const now = new Date();
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+  const startDate = parseDate(startTime, fifteenMinutesAgo);
+  const endDate = parseDate(endTime, now);
+
   try {
-    // 現在時刻と15分前のデフォルト値を設定
-    const now = new Date();
-    const fifteenMinutesAgo = new Date(now);
-    fifteenMinutesAgo.setMinutes(now.getMinutes() - 15);
-
-    const startDate = parseDate(startTime, fifteenMinutesAgo);
-    const endDate = parseDate(endTime, now);
-
     const logs = await searchLogs({
-      query,
+      query: query || "*",
       startTime: startDate,
       endTime: endDate,
-      limit,
-      sort,
+      limit: limit || 25,
+      sort: sort || "desc",
     });
 
     const summaryText = generateSummaryText(

@@ -1,4 +1,3 @@
-// filepath: /Users/nozomu.tsuruta/dd-mcp/src/datadog/spans/aggregate.ts
 import { createConfiguration } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-common/configuration.js";
 import {
   SpanAggregationParams,
@@ -6,24 +5,15 @@ import {
   SpanBucket,
 } from "../../types.js";
 import { v2 } from "@datadog/datadog-api-client";
-import { SpansAggregationFunction } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v2/index.js";
 
 export const aggregateSpans = async (
-  params?: SpanAggregationParams
+  params: SpanAggregationParams
 ): Promise<SpanAggregationResult> => {
   try {
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
 
-    const now = new Date();
-    const fifteenMinutesAgo = new Date(now);
-    fifteenMinutesAgo.setMinutes(now.getMinutes() - 15);
-
-    const startTime = params?.startTime ?? fifteenMinutesAgo;
-    const endTime = params?.endTime ?? now;
-    const aggregation =
-      (params?.aggregation as SpansAggregationFunction) ?? "count";
-    const interval = params?.interval ?? "5m";
+    const { startTime, endTime, aggregation, interval } = params || {};
 
     const requestBody: v2.SpansApiAggregateSpansRequest = {
       body: {
@@ -31,7 +21,7 @@ export const aggregateSpans = async (
           attributes: {
             compute: [
               {
-                aggregation: aggregation,
+                aggregation: aggregation as v2.SpansAggregationFunction,
                 interval: interval,
                 type: "timeseries",
               },
@@ -39,7 +29,7 @@ export const aggregateSpans = async (
             filter: {
               from: startTime.toISOString(),
               to: endTime.toISOString(),
-              query: params?.query || "*",
+              query: params.query,
             },
             groupBy: params?.groupBy?.length
               ? params.groupBy.map((field) => ({

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { searchSpans, SearchSpansResult } from "../../datadog/spans/search.js";
-import { createSuccessResponse, createErrorResponse } from "../../utils.js";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  parseDate,
+} from "../../utils.js";
 import type { SpanSearchParams, ToolResponse } from "../../types.js";
 
 export const searchSpansZodSchema = z.object({
@@ -85,22 +89,20 @@ export const searchSpansHandler = async (
 
   const { query, startTime, endTime, limit, cursor } = validation.data;
 
+  const now = new Date();
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+  const startDate = parseDate(startTime, fifteenMinutesAgo);
+  const endDate = parseDate(endTime, now);
+
   try {
-    const params: SpanSearchParams = {
-      query,
-      limit,
-      cursor,
-    };
+    const result = await searchSpans({
+      query: query || "*",
+      startTime: startDate,
+      endTime: endDate,
+      limit: limit || 25,
+      cursor: cursor,
+    });
 
-    if (startTime) {
-      params.startTime = new Date(startTime * 1000);
-    }
-
-    if (endTime) {
-      params.endTime = new Date(endTime * 1000);
-    }
-
-    const result = await searchSpans(params);
     const formattedResult = formatSpansResult(result);
 
     return createSuccessResponse([formattedResult]);

@@ -1,27 +1,6 @@
-// filepath: /Users/nozomu.tsuruta/dd-mcp/src/datadog/spans/search.ts
 import { createConfiguration } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-common/configuration.js";
 import { Span, SpanSearchParams } from "../../types.js";
 import { v2 } from "@datadog/datadog-api-client";
-import { SpansApiListSpansGetRequest } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v2/index.js";
-
-const buildSearchParams = (
-  params?: SpanSearchParams
-): SpansApiListSpansGetRequest => {
-  const now = new Date();
-  const fifteenMinutesAgo = new Date(now);
-  fifteenMinutesAgo.setMinutes(now.getMinutes() - 15);
-
-  const startTime = params?.startTime ?? fifteenMinutesAgo;
-  const endTime = params?.endTime ?? now;
-
-  return {
-    filterQuery: params?.query || "*",
-    pageLimit: params?.limit ?? 25,
-    filterFrom: startTime.toISOString(),
-    filterTo: endTime.toISOString(),
-    pageCursor: params?.cursor,
-  };
-};
 
 const transformSpanData = (spanData: v2.Span): Span => ({
   id: spanData.id || "",
@@ -46,14 +25,19 @@ export type SearchSpansResult = {
 };
 
 export const searchSpans = async (
-  params?: SpanSearchParams
+  params: SpanSearchParams
 ): Promise<SearchSpansResult> => {
   try {
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
-    const searchParams = buildSearchParams(params);
 
-    const response = await spansApi.listSpansGet(searchParams);
+    const response = await spansApi.listSpansGet({
+      filterQuery: params.query,
+      filterFrom: params.startTime?.toISOString(),
+      filterTo: params.endTime?.toISOString(),
+      pageLimit: params.limit || 25,
+      pageCursor: params.cursor,
+    });
 
     if (!response.data || response.data.length === 0) {
       return { spans: [] };

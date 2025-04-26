@@ -10,12 +10,11 @@ export type Log = {
 };
 
 export type LogSearchParams = {
-  query?: string;
-  startTime?: Date;
-  endTime?: Date;
-  limit?: number;
-  sort?: "asc" | "desc";
-  index?: string;
+  query: string;
+  startTime: Date;
+  endTime: Date;
+  limit: number;
+  sort: "asc" | "desc";
 };
 
 export type Span = {
@@ -36,20 +35,20 @@ export type Span = {
 };
 
 export type SpanSearchParams = {
-  query?: string;
-  startTime?: Date;
-  endTime?: Date;
-  limit?: number;
+  query: string;
+  startTime: Date;
+  endTime: Date;
+  limit: number;
   cursor?: string;
 };
 
 export type SpanAggregationParams = {
-  query?: string;
-  startTime?: Date;
-  endTime?: Date;
+  query: string;
+  startTime: Date;
+  endTime: Date;
   groupBy?: string[];
-  aggregation?: string;
-  interval?: string;
+  aggregation: string;
+  interval: string;
 };
 
 export type SpanAggregationResult = {
