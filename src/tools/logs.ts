@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { searchLogs } from "../datadog/logs/search.js";
+import { createErrorResponse, createSuccessResponse } from "../utils.js";
 import type { Log, ToolResponse } from "../types.js";
 
 export const searchLogsZodSchema = z.object({
@@ -73,42 +74,6 @@ const parseDate = (timestamp: number | undefined, defaultDate: Date): Date => {
   }
 };
 
-const createErrorResponse = (message: string): ToolResponse => ({
-  content: [
-    {
-      type: "text",
-      text: message,
-    },
-  ],
-  isError: true,
-});
-
-const createSuccessResponse = (
-  summaryText: string,
-  formattedLogs: string,
-  rawLogs: Log[]
-): ToolResponse => ({
-  content: [
-    {
-      type: "text",
-      text: summaryText,
-    },
-    {
-      type: "text",
-      text: formattedLogs || "該当するログが見つかりませんでした。",
-    },
-    {
-      type: "text",
-      text: "詳細なログデータ:",
-    },
-    {
-      type: "text",
-      text: JSON.stringify(rawLogs, null, 2),
-    },
-  ],
-  isError: false,
-});
-
 export const searchLogsHandler = async (
   parameters: unknown
 ): Promise<ToolResponse> => {
@@ -147,7 +112,12 @@ export const searchLogsHandler = async (
     );
     const formattedLogs = formatLogs(logs);
 
-    return createSuccessResponse(summaryText, formattedLogs, logs);
+    return createSuccessResponse([
+      summaryText,
+      formattedLogs || "該当するログが見つかりませんでした。",
+      "詳細なログデータ:",
+      JSON.stringify(logs, null, 2),
+    ]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`ログ検索エラー: ${errorMessage}`);

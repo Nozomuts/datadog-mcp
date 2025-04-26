@@ -6,6 +6,7 @@ import {
   SpanAggregationParams,
   SpanAggregationResult,
 } from "../types.js";
+import { createSuccessResponse, createErrorResponse } from "../utils.js";
 import { z } from "zod";
 
 export const searchSpansZodSchema = z.object({
@@ -181,27 +182,12 @@ export const searchSpansHandler = async (
     const result = await searchSpans(params);
     const formattedResult = formatSpansResult(result);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: formattedResult,
-        },
-      ],
-      isError: false,
-    };
+    return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Spanの検索中にエラーが発生しました: ${errorMessage}`,
-        },
-      ],
-      isError: true,
-    };
+    return createErrorResponse(
+      `Spanの検索中にエラーが発生しました: ${errorMessage}`
+    );
   }
 };
 
@@ -227,30 +213,14 @@ export const aggregateSpansHandler = async (
     const result = await aggregateSpans(params);
     const formattedResult = formatAggregationResult(result);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: formattedResult,
-        },
-        {
-          type: "text",
-          text: "生データ: " + JSON.stringify(result, null, 2),
-        },
-      ],
-      isError: false,
-    };
+    return createSuccessResponse([
+      formattedResult,
+      "生データ: " + JSON.stringify(result, null, 2),
+    ]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Spanの集計中にエラーが発生しました: ${errorMessage}`,
-        },
-      ],
-      isError: true,
-    };
+    return createErrorResponse(
+      `Spanの集計中にエラーが発生しました: ${errorMessage}`
+    );
   }
 };
