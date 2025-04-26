@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { searchSpans, SearchSpansResult } from "../../datadog/spans/search.js";
+import { searchSpans } from "../../datadog/spans/search.js";
 import { createSuccessResponse, createErrorResponse } from "../../utils.js";
-import type { ToolResponse } from "../../types.js";
+import type { SpanSearchResult, ToolResponse } from "../../types.js";
 
 export const searchSpansZodSchema = z.object({
   filterQuery: z
@@ -38,7 +38,7 @@ export const searchSpansZodSchema = z.object({
     .describe("ページネーションのカーソル（オプション）"),
 });
 
-const formatSpansResult = (result: SearchSpansResult): string => {
+const formatSpansResult = (result: SpanSearchResult): string => {
   const { spans, nextCursor } = result;
 
   if (spans.length === 0) {

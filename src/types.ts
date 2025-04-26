@@ -41,6 +41,11 @@ export type SpanSearchParams = {
   pageCursor?: string;
 };
 
+export type SpanSearchResult = {
+  spans: Span[];
+  nextCursor?: string;
+};
+
 export type SpanAggregationParams = {
   filterQuery: string;
   filterFrom: Date;
@@ -49,6 +54,7 @@ export type SpanAggregationParams = {
   aggregation: string;
   interval: string;
 };
+
 
 export type SpanAggregationResult = {
   buckets: SpanBucket[];

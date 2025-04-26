@@ -112,7 +112,7 @@ export const aggregateSpansHandler = async (
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(
-      `Spanの集計中にエラーが発生しました: ${errorMessage}`
+      `スパン集計エラー: ${errorMessage}`
     );
   }
 };

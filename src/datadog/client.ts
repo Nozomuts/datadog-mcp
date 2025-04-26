@@ -1,15 +1,10 @@
 import { client } from "@datadog/datadog-api-client";
 
-type ApiConfig = {
-  apiKey: string;
-  appKey: string;
-};
-
-export const createConfiguration = (config?: ApiConfig) => {
+export const createConfiguration = () => {
   return client.createConfiguration({
     authMethods: {
-      apiKeyAuth: config?.apiKey || process.env.DD_API_KEY || "",
-      appKeyAuth: config?.appKey || process.env.DD_APP_KEY || "",
+      apiKeyAuth: process.env.DD_API_KEY || "",
+      appKeyAuth: process.env.DD_APP_KEY || "",
     },
   });
 };

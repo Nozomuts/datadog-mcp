@@ -1,15 +1,10 @@
 import { createConfiguration } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-common/configuration.js";
-import { Span, SpanSearchParams } from "../../types.js";
+import { Span, SpanSearchParams, SpanSearchResult } from "../../types.js";
 import { v2 } from "@datadog/datadog-api-client";
-
-export type SearchSpansResult = {
-  spans: Span[];
-  nextCursor?: string;
-};
 
 export const searchSpans = async (
   params: SpanSearchParams
-): Promise<SearchSpansResult> => {
+): Promise<SpanSearchResult> => {
   try {
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
