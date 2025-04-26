@@ -13,7 +13,7 @@ export const aggregateSpans = async (
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
 
-    const { startTime, endTime, aggregation, interval } = params || {};
+    const { filterFrom, filterTo, filterQuery, aggregation, interval } = params || {};
 
     const requestBody: v2.SpansApiAggregateSpansRequest = {
       body: {
@@ -27,11 +27,11 @@ export const aggregateSpans = async (
               },
             ],
             filter: {
-              from: startTime.toISOString(),
-              to: endTime.toISOString(),
-              query: params.query,
+              from: filterFrom.toISOString(),
+              to: filterTo.toISOString(),
+              query: filterQuery,
             },
-            groupBy: params?.groupBy?.length
+            groupBy: params.groupBy?.length
               ? params.groupBy.map((field) => ({
                   facet: field,
                   limit: 10,

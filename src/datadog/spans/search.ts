@@ -15,11 +15,11 @@ export const searchSpans = async (
     const spansApi = new v2.SpansApi(configuration);
 
     const response = await spansApi.listSpansGet({
-      filterQuery: params.query,
-      filterFrom: params.startTime?.toISOString(),
-      filterTo: params.endTime?.toISOString(),
-      pageLimit: params.limit || 25,
-      pageCursor: params.cursor,
+      filterQuery: params.filterQuery,
+      filterFrom: params.filterFrom?.toISOString(),
+      filterTo: params.filterTo?.toISOString(),
+      pageLimit: params.pageLimit || 25,
+      pageCursor: params.pageCursor,
     });
 
     if (!response.data || response.data.length === 0) {

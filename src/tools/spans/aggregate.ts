@@ -8,17 +8,17 @@ import {
 import type { SpanAggregationResult, ToolResponse } from "../../types.js";
 
 export const aggregateSpansZodSchema = z.object({
-  query: z
+  filterQuery: z
     .string()
     .optional()
     .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
-  startTime: z
+  filterFrom: z
     .number()
     .optional()
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
     ),
-  endTime: z
+  filterTo: z
     .number()
     .optional()
     .describe(
@@ -99,21 +99,21 @@ export const aggregateSpansHandler = async (
     );
   }
 
-  const { query, aggregation, startTime, endTime, interval, groupBy } =
+  const { filterQuery, aggregation, filterFrom, filterTo, interval, groupBy } =
     validation.data;
 
   const now = new Date();
   const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const startDate = parseDate(startTime, fifteenMinutesAgo);
-  const endDate = parseDate(endTime, now);
+  const parsedFilterFrom = parseDate(filterFrom, fifteenMinutesAgo);
+  const parsedFilterTo = parseDate(filterTo, now);
 
   try {
     const result = await aggregateSpans({
-      query: query || "*",
+      filterQuery: filterQuery || "*",
       aggregation: aggregation || "count",
       interval: interval || "5m",
-      startTime: startDate,
-      endTime: endDate,
+      filterFrom: parsedFilterFrom,
+      filterTo: parsedFilterTo,
       groupBy,
     });
 

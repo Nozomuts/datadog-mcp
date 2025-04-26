@@ -8,29 +8,29 @@ import {
 import type { SpanSearchParams, ToolResponse } from "../../types.js";
 
 export const searchSpansZodSchema = z.object({
-  query: z
+  filterQuery: z
     .string()
     .optional()
     .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
-  startTime: z
+  filterFrom: z
     .number()
     .optional()
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
     ),
-  endTime: z
+  filterTo: z
     .number()
     .optional()
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
     ),
-  limit: z
+  pageLimit: z
     .number()
     .min(1)
     .max(1000)
     .optional()
     .describe("取得するスパンの最大数（オプション、デフォルトは25）"),
-  cursor: z
+  pageCursor: z
     .string()
     .optional()
     .describe("ページネーションのカーソル（オプション）"),
@@ -87,20 +87,21 @@ export const searchSpansHandler = async (
     );
   }
 
-  const { query, startTime, endTime, limit, cursor } = validation.data;
+  const { filterQuery, filterFrom, filterTo, pageLimit, pageCursor } =
+    validation.data;
 
   const now = new Date();
   const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const startDate = parseDate(startTime, fifteenMinutesAgo);
-  const endDate = parseDate(endTime, now);
+  const parsedFilterFrom = parseDate(filterFrom, fifteenMinutesAgo);
+  const parsedFilterTo = parseDate(filterTo, now);
 
   try {
     const result = await searchSpans({
-      query: query || "*",
-      startTime: startDate,
-      endTime: endDate,
-      limit: limit || 25,
-      cursor: cursor,
+      filterQuery: filterQuery || "*",
+      filterFrom: parsedFilterFrom,
+      filterTo: parsedFilterTo,
+      pageLimit: pageLimit || 25,
+      pageCursor: pageCursor,
     });
 
     const formattedResult = formatSpansResult(result);

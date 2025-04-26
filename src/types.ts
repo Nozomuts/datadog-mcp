@@ -10,10 +10,10 @@ export type Log = {
 };
 
 export type LogSearchParams = {
-  query: string;
-  startTime: Date;
-  endTime: Date;
-  limit: number;
+  filterQuery: string;
+  filterFrom: Date;
+  filterTo: Date;
+  pageLimit: number;
   sort: "asc" | "desc";
 };
 
@@ -35,17 +35,17 @@ export type Span = {
 };
 
 export type SpanSearchParams = {
-  query: string;
-  startTime: Date;
-  endTime: Date;
-  limit: number;
-  cursor?: string;
+  filterQuery: string;
+  filterFrom: Date;
+  filterTo: Date;
+  pageLimit: number;
+  pageCursor?: string;
 };
 
 export type SpanAggregationParams = {
-  query: string;
-  startTime: Date;
-  endTime: Date;
+  filterQuery: string;
+  filterFrom: Date;
+  filterTo: Date;
   groupBy?: string[];
   aggregation: string;
   interval: string;
