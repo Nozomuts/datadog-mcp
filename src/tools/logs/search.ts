@@ -7,26 +7,32 @@ export const searchLogsZodSchema = z.object({
   filterQuery: z
     .string()
     .optional()
+    .default("*")
     .describe(
       "ログを検索するためのクエリ文字列（オプション、デフォルトは「*」）"
     ),
   filterFrom: z
     .number()
     .optional()
+    .default(Date.now() / 1000 - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   filterTo: z
     .number()
     .optional()
+    .default(Date.now() / 1000)
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   pageLimit: z
     .number()
     .min(1)
     .max(1000)
     .optional()
+    .default(25)
     .describe("取得するログの最大数（オプション、デフォルトは25）"),
 });
 
@@ -55,19 +61,6 @@ const generateSummaryText = (
   )} から ${endDate.toLocaleString("ja-JP")}\n取得件数: ${logsCount}`;
 };
 
-const parseDate = (timestamp: number | undefined, defaultDate: Date): Date => {
-  if (!timestamp) return defaultDate;
-
-  try {
-    // UNIXタイムスタンプ（秒）をミリ秒に変換して日付オブジェクトを作成
-    const date = new Date(timestamp * 1000);
-    // 無効な日付の場合はNaNが返されるので、それを検出
-    return isNaN(date.getTime()) ? defaultDate : date;
-  } catch (e) {
-    return defaultDate;
-  }
-};
-
 export const searchLogsHandler = async (
   parameters: unknown
 ): Promise<ToolResponse> => {
@@ -78,26 +71,13 @@ export const searchLogsHandler = async (
     );
   }
 
-  const { filterQuery, filterFrom, filterTo, pageLimit } =
-    validation.data;
-
-  const now = new Date();
-  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const parsedFilterFrom = parseDate(filterFrom, fifteenMinutesAgo);
-  const parsedFilterTo = parseDate(filterTo, now);
-
   try {
-    const logs = await searchLogs({
-      filterQuery: filterQuery || "*",
-      filterFrom: parsedFilterFrom,
-      filterTo: parsedFilterTo,
-      pageLimit: pageLimit || 25,
-    });
+    const logs = await searchLogs(validation.data);
 
     const summaryText = generateSummaryText(
-      filterQuery,
-      parsedFilterFrom,
-      parsedFilterTo,
+      validation.data.filterQuery,
+      validation.data.filterFrom,
+      validation.data.filterTo,
       logs.length
     );
     const formattedLogs = formatLogs(logs);

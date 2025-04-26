@@ -1,29 +1,30 @@
 import { z } from "zod";
 import { aggregateSpans } from "../../datadog/spans/aggregate.js";
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  parseDate,
-} from "../../utils.js";
+import { createSuccessResponse, createErrorResponse } from "../../utils.js";
 import type { SpanAggregationResult, ToolResponse } from "../../types.js";
 
 export const aggregateSpansZodSchema = z.object({
   filterQuery: z
     .string()
     .optional()
+    .default("*")
     .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
   filterFrom: z
     .number()
     .optional()
+    .default(Date.now() / 1000 - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   filterTo: z
     .number()
     .optional()
+    .default(Date.now() / 1000)
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   groupBy: z
     .array(z.string())
     .optional()
@@ -33,10 +34,12 @@ export const aggregateSpansZodSchema = z.object({
   aggregation: z
     .string()
     .optional()
+    .default("count")
     .describe("集計方法（オプション、デフォルトは'count'）"),
   interval: z
     .string()
     .optional()
+    .default("5m")
     .describe("時系列データの間隔（オプション、デフォルトは'5m'）"),
 });
 
@@ -99,26 +102,9 @@ export const aggregateSpansHandler = async (
     );
   }
 
-  const { filterQuery, aggregation, filterFrom, filterTo, interval, groupBy } =
-    validation.data;
-
-  const now = new Date();
-  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const parsedFilterFrom = parseDate(filterFrom, fifteenMinutesAgo);
-  const parsedFilterTo = parseDate(filterTo, now);
-
   try {
-    const result = await aggregateSpans({
-      filterQuery: filterQuery || "*",
-      aggregation: aggregation || "count",
-      interval: interval || "5m",
-      filterFrom: parsedFilterFrom,
-      filterTo: parsedFilterTo,
-      groupBy,
-    });
-
+    const result = await aggregateSpans(validation.data);
     const formattedResult = formatAggregationResult(result);
-
     return createSuccessResponse([
       formattedResult,
       "生データ: " + JSON.stringify(result, null, 2),

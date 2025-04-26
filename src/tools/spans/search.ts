@@ -1,34 +1,36 @@
 import { z } from "zod";
 import { searchSpans, SearchSpansResult } from "../../datadog/spans/search.js";
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  parseDate,
-} from "../../utils.js";
-import type { SpanSearchParams, ToolResponse } from "../../types.js";
+import { createSuccessResponse, createErrorResponse } from "../../utils.js";
+import type { ToolResponse } from "../../types.js";
 
 export const searchSpansZodSchema = z.object({
   filterQuery: z
     .string()
     .optional()
+    .default("*")
     .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
   filterFrom: z
     .number()
     .optional()
+    .default(Math.floor(Date.now() / 1000) - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   filterTo: z
     .number()
     .optional()
+    .default(Math.floor(Date.now() / 1000))
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    ),
+    )
+    .transform((date) => new Date(date * 1000)),
   pageLimit: z
     .number()
     .min(1)
     .max(1000)
     .optional()
+    .default(25)
     .describe("取得するスパンの最大数（オプション、デフォルトは25）"),
   pageCursor: z
     .string()
@@ -87,30 +89,12 @@ export const searchSpansHandler = async (
     );
   }
 
-  const { filterQuery, filterFrom, filterTo, pageLimit, pageCursor } =
-    validation.data;
-
-  const now = new Date();
-  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const parsedFilterFrom = parseDate(filterFrom, fifteenMinutesAgo);
-  const parsedFilterTo = parseDate(filterTo, now);
-
   try {
-    const result = await searchSpans({
-      filterQuery: filterQuery || "*",
-      filterFrom: parsedFilterFrom,
-      filterTo: parsedFilterTo,
-      pageLimit: pageLimit || 25,
-      pageCursor: pageCursor,
-    });
-
+    const result = await searchSpans(validation.data);
     const formattedResult = formatSpansResult(result);
-
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(
-      `Spanの検索中にエラーが発生しました: ${errorMessage}`
-    );
+    return createErrorResponse(`スパン検索エラー: ${errorMessage}`);
   }
 };
