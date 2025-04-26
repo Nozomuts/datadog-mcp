@@ -19,32 +19,33 @@ MCP Server for Datadog API, enabling log search, trace span search, and trace sp
 1. `search_logs`
    - Search for logs in Datadog
    - Inputs:
-     - `query` (optional string): Query string to search logs (default: "*")
-     - `startTime` (optional number): Search start time as UNIX timestamp in seconds (default: 1 hour ago)
-     - `endTime` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
-     - `limit` (optional number): Maximum number of logs to retrieve (default: 25, max: 1000)
-     - `sort` (optional string): Sort order ("asc" or "desc", default: "desc")
+     - `filterQuery` (optional string): Query string to search logs (default: "*")
+     - `filterFrom` (optional number): Search start time as UNIX timestamp in seconds (default: 1 hour ago)
+     - `filterTo` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
+     - `pageLimit` (optional number): Maximum number of logs to retrieve (default: 25, max: 1000)
+     - `pageCursor` (optional string): Pagination cursor for retrieving additional results
    - Returns: Formatted logs and raw log data
 
 2. `search_spans`
    - Search for trace spans in Datadog
    - Inputs:
-     - `query` (optional string): Query string to search spans (default: "*")
-     - `startTime` (optional number): Search start time as UNIX timestamp in seconds (default: 15 minutes ago)
-     - `endTime` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
-     - `limit` (optional number): Maximum number of spans to retrieve (default: 25, max: 1000)
-     - `cursor` (optional string): Pagination cursor for retrieving additional results
+     - `filterQuery` (optional string): Query string to search spans (default: "*")
+     - `filterFrom` (optional number): Search start time as UNIX timestamp in seconds (default: 15 minutes ago)
+     - `filterTo` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
+     - `pageLimit` (optional number): Maximum number of spans to retrieve (default: 25, max: 1000)
+     - `pageCursor` (optional string): Pagination cursor for retrieving additional results
    - Returns: Formatted span information including trace details, services, and timing data
 
 3. `aggregate_spans`
    - Aggregate trace spans in Datadog by specified dimensions
    - Inputs:
-     - `query` (optional string): Query string to filter spans for aggregation (default: "*")
-     - `startTime` (optional number): Start time as UNIX timestamp in seconds (default: 15 minutes ago)
-     - `endTime` (optional number): End time as UNIX timestamp in seconds (default: current time)
+     - `filterQuery` (optional string): Query string to filter spans for aggregation (default: "*")
+     - `filterFrom` (optional number): Start time as UNIX timestamp in seconds (default: 15 minutes ago)
+     - `filterTo` (optional number): End time as UNIX timestamp in seconds (default: current time)
      - `groupBy` (optional string[]): Dimensions to group by (e.g., ["service", "resource_name", "status"])
      - `aggregation` (optional string): Aggregation method (default: "count")
      - `interval` (optional string): Time interval for time series data (default: "5m")
+     - `type` (optional string): Result type, either "timeseries" or "total" (default: "timeseries")
    - Returns: Aggregated span data in buckets with computation results
 
 ## Setup
@@ -146,32 +147,33 @@ DatadogのAPIにアクセスするためのMCPサーバーで、ログ検索、�
 1. `search_logs`
    - Datadogのログを検索するツール
    - 入力パラメータ:
-     - `query` (任意, 文字列): ログ検索用クエリ文字列（デフォルト: "*"）
-     - `startTime` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 1時間前）
-     - `endTime` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
-     - `limit` (任意, 数値): 取得するログの最大数（デフォルト: 25、最大: 1000）
-     - `sort` (任意, 文字列): ソート順（"asc"=古い順、"desc"=新しい順、デフォルト: "desc"）
+     - `filterQuery` (任意, 文字列): ログ検索用クエリ文字列（デフォルト: "*"）
+     - `filterFrom` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 1時間前）
+     - `filterTo` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
+     - `pageLimit` (任意, 数値): 取得するログの最大数（デフォルト: 25、最大: 1000）
+     - `pageCursor` (任意, 文字列): 追加結果を取得するためのページネーションカーソル
    - 戻り値: フォーマット済みログと生ログデータ
 
 2. `search_spans`
    - Datadogのトレーススパンを検索するツール
    - 入力パラメータ:
-     - `query` (任意, 文字列): スパン検索用クエリ文字列（デフォルト: "*"）
-     - `startTime` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
-     - `endTime` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
-     - `limit` (任意, 数値): 取得するスパンの最大数（デフォルト: 25、最大: 1000）
-     - `cursor` (任意, 文字列): 追加結果を取得するためのページネーションカーソル
+     - `filterQuery` (任意, 文字列): スパン検索用クエリ文字列（デフォルト: "*"）
+     - `filterFrom` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
+     - `filterTo` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
+     - `pageLimit` (任意, 数値): 取得するスパンの最大数（デフォルト: 25、最大: 1000）
+     - `pageCursor` (任意, 文字列): 追加結果を取得するためのページネーションカーソル
    - 戻り値: トレース詳細、サービス、タイミングデータなどを含むフォーマット済みスパン情報
 
 3. `aggregate_spans`
    - Datadogのトレーススパンを指定された次元で集計するツール
    - 入力パラメータ:
-     - `query` (任意, 文字列): 集計対象スパンのフィルタ用クエリ文字列（デフォルト: "*"）
-     - `startTime` (任意, 数値): 開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
-     - `endTime` (任意, 数値): 終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
+     - `filterQuery` (任意, 文字列): 集計対象スパンのフィルタ用クエリ文字列（デフォルト: "*"）
+     - `filterFrom` (任意, 数値): 開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
+     - `filterTo` (任意, 数値): 終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
      - `groupBy` (任意, 文字列[]): グループ化する次元（例: ["service", "resource_name", "status"]）
      - `aggregation` (任意, 文字列): 集計方法（デフォルト: "count"）
      - `interval` (任意, 文字列): 時系列データの間隔（デフォルト: "5m"）
+     - `type` (任意, 文字列): 結果タイプ、"timeseries"または"total"（デフォルト: "timeseries"）
    - 戻り値: バケット内の集計されたスパンデータと計算結果
 
 ## セットアップ
@@ -222,17 +224,17 @@ VS Codeですぐに使用するための設定方法：
 {
   "mcp": {
     "servers": {
-			"datadog": {
-				"command": "node",
-				"args": [
-					"/path/to/dd-mcp/build/index.js"
-				],
-				"env": {
-					"DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
-					"DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
-				}
-			}
-		}
+      "datadog": {
+        "command": "node",
+        "args": [
+          "/path/to/dd-mcp/build/index.js"
+        ],
+        "env": {
+          "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
+          "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+        }
+      }
+    }
   }
 }
 ```
@@ -255,5 +257,3 @@ VS Codeですぐに使用するための設定方法：
   }
 }
 ```
-
----
