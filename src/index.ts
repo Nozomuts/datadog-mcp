@@ -1,12 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { searchLogsHandler, searchLogsZodSchema } from "./tools/logs.js";
+import { searchLogsHandler, searchLogsZodSchema } from "./tools/logs/search.js";
+import {
+  aggregateSpansHandler,
+  aggregateSpansZodSchema,
+} from "./tools/spans/aggregate.js";
 import {
   searchSpansHandler,
   searchSpansZodSchema,
-  aggregateSpansHandler,
-  aggregateSpansZodSchema,
-} from "./tools/spans.js";
+} from "./tools/spans/search.js";
 
 const server = new McpServer({
   name: "datadog-mcp-server",

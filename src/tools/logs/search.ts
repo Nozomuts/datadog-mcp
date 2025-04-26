@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { searchLogs } from "../datadog/logs/search.js";
-import { createErrorResponse, createSuccessResponse } from "../utils.js";
-import type { Log, ToolResponse } from "../types.js";
+import { searchLogs } from "../../datadog/logs/search.js";
+import { createErrorResponse, createSuccessResponse } from "../../utils.js";
+import type { Log, ToolResponse } from "../../types.js";
 
 export const searchLogsZodSchema = z.object({
   query: z
