@@ -78,7 +78,6 @@ export const searchLogsHandler = async (
   parameters: unknown
 ): Promise<ToolResponse> => {
   const validation = searchLogsZodSchema.safeParse(parameters);
-
   if (!validation.success) {
     return createErrorResponse(
       `パラメータ検証エラー: ${validation.error.message}`

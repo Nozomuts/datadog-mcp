@@ -74,21 +74,30 @@ const formatSpansResult = (result: SearchSpansResult): string => {
 };
 
 export const searchSpansHandler = async (
-  input: z.infer<typeof searchSpansZodSchema>
+  parameters: z.infer<typeof searchSpansZodSchema>
 ): Promise<ToolResponse> => {
+  const validation = searchSpansZodSchema.safeParse(parameters);
+  if (!validation.success) {
+    return createErrorResponse(
+      `パラメータ検証エラー: ${validation.error.message}`
+    );
+  }
+
+  const { query, startTime, endTime, limit, cursor } = validation.data;
+
   try {
     const params: SpanSearchParams = {
-      query: input.query,
-      limit: input.limit,
-      cursor: input.cursor,
+      query,
+      limit,
+      cursor,
     };
 
-    if (input.startTime) {
-      params.startTime = new Date(input.startTime * 1000);
+    if (startTime) {
+      params.startTime = new Date(startTime * 1000);
     }
 
-    if (input.endTime) {
-      params.endTime = new Date(input.endTime * 1000);
+    if (endTime) {
+      params.endTime = new Date(endTime * 1000);
     }
 
     const result = await searchSpans(params);

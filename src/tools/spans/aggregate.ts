@@ -90,22 +90,31 @@ const formatAggregationResult = (result: SpanAggregationResult): string => {
 };
 
 export const aggregateSpansHandler = async (
-  input: z.infer<typeof aggregateSpansZodSchema>
+  parameters: z.infer<typeof aggregateSpansZodSchema>
 ): Promise<ToolResponse> => {
+  const validation = aggregateSpansZodSchema.safeParse(parameters);
+  if (!validation.success) {
+    return createErrorResponse(
+      `パラメータ検証エラー: ${validation.error.message}`
+    );
+  }
+
+  const { query, aggregation, startTime, endTime, interval, groupBy } =
+    validation.data;
+
   try {
     const params: SpanAggregationParams = {
-      query: input.query,
-      aggregation: input.aggregation,
-      interval: input.interval,
-      groupBy: input.groupBy,
+      query,
+      aggregation,
+      interval,
+      groupBy,
     };
 
-    if (input.startTime) {
-      params.startTime = new Date(input.startTime * 1000);
+    if (startTime) {
+      params.startTime = new Date(startTime * 1000);
     }
-
-    if (input.endTime) {
-      params.endTime = new Date(input.endTime * 1000);
+    if (endTime) {
+      params.endTime = new Date(endTime * 1000);
     }
 
     const result = await aggregateSpans(params);
