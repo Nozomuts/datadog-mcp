@@ -14,7 +14,7 @@ export const searchLogsZodSchema = z.object({
     .number()
     .optional()
     .describe(
-      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは1時間前）"
+      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
     ),
   endTime: z
     .number()
@@ -88,12 +88,12 @@ export const searchLogsHandler = async (
   const { query, startTime, endTime, limit, sort } = validation.data;
 
   try {
-    // 現在時刻と1時間前のデフォルト値を設定
+    // 現在時刻と15分前のデフォルト値を設定
     const now = new Date();
-    const oneHourAgo = new Date(now);
-    oneHourAgo.setHours(now.getHours() - 1);
+    const fifteenMinutesAgo = new Date(now);
+    fifteenMinutesAgo.setMinutes(now.getMinutes() - 15);
 
-    const startDate = parseDate(startTime, oneHourAgo);
+    const startDate = parseDate(startTime, fifteenMinutesAgo);
     const endDate = parseDate(endTime, now);
 
     const logs = await searchLogs({
