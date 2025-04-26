@@ -28,12 +28,6 @@ export const searchLogsZodSchema = z.object({
     .max(1000)
     .optional()
     .describe("取得するログの最大数（オプション、デフォルトは25）"),
-  sort: z
-    .enum(["asc", "desc"])
-    .optional()
-    .describe(
-      "ソート順（asc=古い順、desc=新しい順、オプション、デフォルトはdesc）"
-    ),
 });
 
 const formatLogs = (logs: Log[]): string => {
@@ -84,7 +78,7 @@ export const searchLogsHandler = async (
     );
   }
 
-  const { filterQuery, filterFrom, filterTo, pageLimit, sort } =
+  const { filterQuery, filterFrom, filterTo, pageLimit } =
     validation.data;
 
   const now = new Date();
@@ -98,7 +92,6 @@ export const searchLogsHandler = async (
       filterFrom: parsedFilterFrom,
       filterTo: parsedFilterTo,
       pageLimit: pageLimit || 25,
-      sort: sort || "desc",
     });
 
     const summaryText = generateSummaryText(

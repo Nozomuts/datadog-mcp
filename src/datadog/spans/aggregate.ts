@@ -13,7 +13,7 @@ export const aggregateSpans = async (
     const configuration = createConfiguration();
     const spansApi = new v2.SpansApi(configuration);
 
-    const { filterFrom, filterTo, filterQuery, aggregation, interval } = params || {};
+    const { filterFrom, filterTo, filterQuery, aggregation, interval } = params;
 
     const requestBody: v2.SpansApiAggregateSpansRequest = {
       body: {

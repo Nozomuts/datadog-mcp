@@ -7,13 +7,7 @@ export const searchLogs = async (params: LogSearchParams): Promise<Log[]> => {
     const configuration = createConfiguration();
     const logsApi = new v2.LogsApi(configuration);
 
-    const response = await logsApi.listLogsGet({
-      filterQuery: params.filterQuery,
-      filterFrom: params.filterFrom,
-      filterTo: params.filterTo,
-      pageLimit: params.pageLimit || 25,
-      sort: params.sort === "asc" ? "timestamp" : "-timestamp",
-    });
+    const response = await logsApi.listLogsGet(params);
 
     if (!response.data || response.data.length === 0) {
       return [];

@@ -14,7 +14,6 @@ export type LogSearchParams = {
   filterFrom: Date;
   filterTo: Date;
   pageLimit: number;
-  sort: "asc" | "desc";
 };
 
 export type Span = {

@@ -16,8 +16,8 @@ export const searchSpans = async (
 
     const response = await spansApi.listSpansGet({
       filterQuery: params.filterQuery,
-      filterFrom: params.filterFrom?.toISOString(),
-      filterTo: params.filterTo?.toISOString(),
+      filterFrom: params.filterFrom.toISOString(),
+      filterTo: params.filterTo.toISOString(),
       pageLimit: params.pageLimit || 25,
       pageCursor: params.pageCursor,
     });
