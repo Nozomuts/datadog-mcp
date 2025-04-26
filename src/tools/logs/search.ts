@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { searchLogs } from "../../datadog/logs/search.js";
 import { createErrorResponse, createSuccessResponse } from "../../utils.js";
-import type { Log, ToolResponse } from "../../types.js";
+import type { LogSearchResult, ToolResponse } from "../../types.js";
 
 export const searchLogsZodSchema = z.object({
   filterQuery: z
@@ -34,10 +34,20 @@ export const searchLogsZodSchema = z.object({
     .optional()
     .default(25)
     .describe("取得するログの最大数（オプション、デフォルトは25）"),
+  pageCursor: z
+    .string()
+    .optional()
+    .describe("ページネーションのカーソル（オプション）"),
 });
 
-const formatLogs = (logs: Log[]): string => {
-  return logs
+const formatLogs = (result: LogSearchResult): string => {
+  const { logs, nextCursor } = result;
+
+  if (logs.length === 0) {
+    return "該当するログが見つかりませんでした。";
+  }
+
+  let response = logs
     .map((log) => {
       const timestamp = log.timestamp
         ? new Date(log.timestamp).toLocaleString("ja-JP")
@@ -48,6 +58,12 @@ const formatLogs = (logs: Log[]): string => {
       }: ${log.message || "メッセージなし"}`;
     })
     .join("\n\n");
+
+  if (nextCursor) {
+    response += `\n\n次のページを取得するには cursor="${nextCursor}" を指定してください。`;
+  }
+
+  return response;
 };
 
 const generateSummaryText = (
@@ -72,21 +88,21 @@ export const searchLogsHandler = async (
   }
 
   try {
-    const logs = await searchLogs(validation.data);
+    const result = await searchLogs(validation.data);
 
     const summaryText = generateSummaryText(
       validation.data.filterQuery,
       validation.data.filterFrom,
       validation.data.filterTo,
-      logs.length
+      result.logs.length
     );
-    const formattedLogs = formatLogs(logs);
+    const formattedLogs = formatLogs(result);
 
     return createSuccessResponse([
       summaryText,
-      formattedLogs || "該当するログが見つかりませんでした。",
+      formattedLogs,
       "詳細なログデータ:",
-      JSON.stringify(logs, null, 2),
+      JSON.stringify(result.logs, null, 2),
     ]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);

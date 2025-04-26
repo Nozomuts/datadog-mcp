@@ -14,6 +14,12 @@ export type LogSearchParams = {
   filterFrom: Date;
   filterTo: Date;
   pageLimit: number;
+  pageCursor?: string;
+};
+
+export type LogSearchResult = {
+  logs: Log[];
+  nextCursor?: string;
 };
 
 export type Span = {
