@@ -15,38 +15,32 @@ export const aggregateSpansZodSchema = z.object({
     .default(Date.now() / 1000 - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   filterTo: z
     .number()
     .optional()
     .default(Date.now() / 1000)
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   groupBy: z
     .array(z.string())
     .optional()
-    .describe(
-      "グループ化する属性の配列（例：['service', 'resource_name', 'status']）"
-    ),
+    .describe("グループ化するための属性（例: ['service', 'resource_name']）"),
   aggregation: z
-    .string()
-    .optional()
+    .enum(["count", "avg", "sum", "min", "max", "pct"])
     .default("count")
-    .describe("集計方法（オプション、デフォルトは'count'）"),
+    .describe("集計関数（オプション、デフォルトは「count」）"),
   interval: z
     .string()
     .optional()
     .default("5m")
-    .describe("時系列データの間隔（オプション、デフォルトは'5m'）"),
+    .describe("結果をグループ化する時間間隔（オプション、デフォルト '5m'）"),
   type: z
     .enum(["timeseries", "total"])
-    .optional()
     .default("timeseries")
     .describe(
-      "集計のタイプ（'timeseries'または'total'、デフォルトは'timeseries'）"
+      "結果タイプ - timeseries または total（オプション、デフォルトは「timeseries」）"
     ),
 });
 
@@ -103,6 +97,7 @@ export const aggregateSpansHandler = async (
   parameters: z.infer<typeof aggregateSpansZodSchema>
 ): Promise<ToolResponse> => {
   const validation = aggregateSpansZodSchema.safeParse(parameters);
+
   if (!validation.success) {
     return createErrorResponse(
       `パラメータ検証エラー: ${validation.error.message}`
@@ -110,12 +105,16 @@ export const aggregateSpansHandler = async (
   }
 
   try {
-    const result = await aggregateSpans(validation.data);
+    // バリデーション後に Date オブジェクトに変換
+    const validatedParams = {
+      ...validation.data,
+      filterFrom: new Date(validation.data.filterFrom * 1000),
+      filterTo: new Date(validation.data.filterTo * 1000),
+    };
+
+    const result = await aggregateSpans(validatedParams);
     const formattedResult = formatAggregationResult(result);
-    return createSuccessResponse([
-      formattedResult,
-      "生データ: " + JSON.stringify(result, null, 2),
-    ]);
+    return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`スパン集計エラー: ${errorMessage}`);

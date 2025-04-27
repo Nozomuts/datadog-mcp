@@ -12,19 +12,17 @@ export const searchSpansZodSchema = z.object({
   filterFrom: z
     .number()
     .optional()
-    .default(Math.floor(Date.now() / 1000) - 15 * 60)
+    .default(Date.now() / 1000 - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   filterTo: z
     .number()
     .optional()
-    .default(Math.floor(Date.now() / 1000))
+    .default(Date.now() / 1000)
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   pageLimit: z
     .number()
     .min(1)
@@ -35,7 +33,7 @@ export const searchSpansZodSchema = z.object({
   pageCursor: z
     .string()
     .optional()
-    .describe("ページネーションのカーソル（オプション）"),
+    .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
 const formatSpansResult = (result: SpanSearchResult): string => {
@@ -90,7 +88,14 @@ export const searchSpansHandler = async (
   }
 
   try {
-    const result = await searchSpans(validation.data);
+    // バリデーション後に Date オブジェクトに変換
+    const validatedParams = {
+      ...validation.data,
+      filterFrom: new Date(validation.data.filterFrom * 1000),
+      filterTo: new Date(validation.data.filterTo * 1000),
+    };
+
+    const result = await searchSpans(validatedParams);
     const formattedResult = formatSpansResult(result);
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {

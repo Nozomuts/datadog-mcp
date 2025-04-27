@@ -17,16 +17,14 @@ export const searchLogsZodSchema = z.object({
     .default(Date.now() / 1000 - 15 * 60)
     .describe(
       "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   filterTo: z
     .number()
     .optional()
     .default(Date.now() / 1000)
     .describe(
       "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
-    )
-    .transform((date) => new Date(date * 1000)),
+    ),
   pageLimit: z
     .number()
     .min(1)
@@ -37,7 +35,7 @@ export const searchLogsZodSchema = z.object({
   pageCursor: z
     .string()
     .optional()
-    .describe("ページネーションのカーソル（オプション）"),
+    .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
 const formatLogs = (result: LogSearchResult): string => {
@@ -78,7 +76,7 @@ const generateSummaryText = (
 };
 
 export const searchLogsHandler = async (
-  parameters: unknown
+  parameters: z.infer<typeof searchLogsZodSchema>
 ): Promise<ToolResponse> => {
   const validation = searchLogsZodSchema.safeParse(parameters);
   if (!validation.success) {
@@ -88,12 +86,19 @@ export const searchLogsHandler = async (
   }
 
   try {
-    const result = await searchLogs(validation.data);
+    // バリデーション後に Date オブジェクトに変換
+    const validatedParams = {
+      ...validation.data,
+      filterFrom: new Date(validation.data.filterFrom * 1000),
+      filterTo: new Date(validation.data.filterTo * 1000),
+    };
+
+    const result = await searchLogs(validatedParams);
 
     const summaryText = generateSummaryText(
-      validation.data.filterQuery,
-      validation.data.filterFrom,
-      validation.data.filterTo,
+      validatedParams.filterQuery,
+      validatedParams.filterFrom,
+      validatedParams.filterTo,
       result.logs.length
     );
     const formattedLogs = formatLogs(result);
