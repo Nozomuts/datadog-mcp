@@ -36,69 +36,78 @@ export const searchSpansZodSchema = z.object({
     .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
-const formatSpansResult = (
+const generateSummaryText = (
   result: SpanSearchResult,
   query: string | undefined,
   startDate: Date,
   endDate: Date
 ): string => {
-  const searchSummary = `# Span検索結果\n\n## 検索条件\n* **クエリ:** \`${
-    query || "*"
-  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **取得件数:** ${
-    result.spans.length
-  }件${result.spans.length === 0 ? " (該当するSpanはありませんでした)" : ""}\n`;
-
-  const paginationInfo = result.nextCursor
-    ? `\n## ページング\n* **次のページカーソル:** \`${result.nextCursor}\`\n`
-    : "";
+  let responseText = "";
+  responseText += `# Span検索結果\n\n`;
+  responseText += `## 検索条件\n`;
+  responseText += `* **クエリ:** ${query || "*"}\n`;
+  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* **取得件数:** ${result.spans.length}件`;
 
   if (result.spans.length === 0) {
-    return searchSummary;
+    return responseText;
   }
 
-  const spanSummaries = result.spans
-    .map((span, index) => {
-      const timestamp = span.startTimestamp
-        ? new Date(span.startTimestamp).toLocaleString()
-        : "不明な日時";
-      const service = span.service || "不明なサービス";
-      const resource = span.resource || "不明なリソース";
-      const duration = span.duration
-        ? `${(span.duration / 1000).toFixed(3)}秒`
-        : "不明な所要時間";
-      const host = span.host || "不明なホスト";
-      const env = span.env || "不明な環境";
-      const type = span.type || "不明なタイプ";
+  if (result.nextCursor) {
+    responseText += `\n* **次のページカーソル:** \`${result.nextCursor}\`\n`;
+  }
 
-      let summary = `### [${index + 1}] ${service}\n`;
-      summary += `* **時刻:** ${timestamp}\n`;
-      summary += `* **リソース:** ${resource}\n`;
-      summary += `* **所要時間:** ${duration}\n`;
-      summary += `* **Trace ID:** \`${span.traceId || "N/A"}\`\n`;
-      summary += `* **ホスト:** ${host}\n`;
-      summary += `* **環境:** ${env}\n`;
-      summary += `* **タイプ:** ${type}\n`;
+  responseText += "\n## Spanサマリー\n\n";
+  for (const [index, span] of result.spans.entries()) {
+    responseText += `\n### [${index + 1}]`;
+    if (span.service) {
+      responseText += `* **サービス:** ${span.service}\n`;
+    }
 
-      // 重要な属性があれば表示
-      if (span.attributes && Object.keys(span.attributes).length > 0) {
-        const importantAttrs = ["http.method", "http.status_code", "error"];
-        const displayAttrs = importantAttrs
-          .filter((key) => key in span.attributes!)
-          .map(
-            (key) => `* **${key}:** \`${JSON.stringify(span.attributes![key])}\``
-          )
-          .join("\n");
+    if (span.startTimestamp) {
+      responseText += `* **時刻:** ${new Date(
+        span.startTimestamp
+      ).toLocaleString()}\n`;
+    }
 
-        if (displayAttrs) {
-          summary += `\n#### 重要な属性\n${displayAttrs}\n`;
-        }
+    if (span.resource) {
+      responseText += `* **リソース:** ${span.resource}\n`;
+    }
+
+    if (span.duration) {
+      responseText += `* **所要時間:** ${(span.duration / 1000).toFixed(
+        3
+      )}秒\n`;
+    }
+
+    if (span.host) {
+      responseText += `* **ホスト:** ${span.host}\n`;
+    }
+
+    if (span.env) {
+      responseText += `* **環境:** ${span.env}\n`;
+    }
+
+    if (span.type) {
+      responseText += `* **タイプ:** ${span.type}\n`;
+    }
+
+    responseText += `\n#### 重要な属性\n`;
+    for (const key of [
+      "http.method",
+      "http.url",
+      "http.status_code",
+      "error",
+    ]) {
+      if (span.attributes && key in span.attributes) {
+        responseText += `* **${key}:** \`${JSON.stringify(
+          span.attributes[key]
+        )}\`\n`;
       }
+    }
+  }
 
-      return summary;
-    })
-    .join("\n\n");
-
-  return `${searchSummary}${paginationInfo}\n## Spanサマリー\n\n${spanSummaries}`;
+  return responseText;
 };
 
 export const searchSpansHandler = async (
@@ -120,7 +129,7 @@ export const searchSpansHandler = async (
     };
 
     const result = await searchSpans(validatedParams);
-    const formattedResult = formatSpansResult(
+    const formattedResult = generateSummaryText(
       result,
       validatedParams.filterQuery,
       validatedParams.filterFrom,

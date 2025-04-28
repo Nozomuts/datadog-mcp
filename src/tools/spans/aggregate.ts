@@ -52,44 +52,47 @@ const generateSummaryText = (
   aggregation: string,
   result: SpanAggregationResult
 ): string => {
-  const searchSummary = `# Span集計結果\n\n## 集計条件\n* **クエリ:** \`${
-    query || "*"
-  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **グループ化:** ${
-    groupBy?.join(", ") || "なし"
-  }\n* **集計関数:** ${aggregation}\n`;
+  let responseText = "";
+  // 集計条件のセクションを追加
+  responseText += `# Span集計結果\n\n`;
+  responseText += `## 集計条件\n`;
+  responseText += `* **クエリ:** \`${query || "*"}\`\n`;
+  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* **グループ化:** ${groupBy?.join(", ") || "なし"}\n`;
+  responseText += `* **集計関数:** ${aggregation}\n\n`;
 
-  const statusSummary = `\n## ステータス\n* **ステータス:** ${
-    result.status || "不明"
-  }\n* **経過時間:** ${result.elapsed || "不明"}\n`;
+  if (result.status) {
+    responseText += `## ステータス\n`;
+    responseText += `* **ステータス:** ${result.status || "不明"}\n`;
+    responseText += `* **経過時間:** ${result.elapsed || "不明"}\n\n`;
+  }
 
-  const bucketsSummary =
-    result.buckets.length === 0
-      ? "該当するスパンはありませんでした。"
-      : result.buckets
-          .map((bucket) => {
-            const groupByValues = Object.entries(bucket.by || {})
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(", ");
-            const computeValues = Object.entries(bucket.compute || {})
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(", ");
-            return `### グループ化: ${groupByValues}\n* **集計結果:** ${computeValues}\n`;
-          })
-          .join("\n");
+  if (result.buckets.length > 0) {
+    responseText += `## 集計結果\n`;
+    for (const bucket of result.buckets) {
+      responseText += `\n### グループ化\n`;
+      for (const [key, value] of Object.entries(bucket.by || {})) {
+        responseText += `\n* **${key}:** ${value}`;
+      }
 
-  const warningsSummary =
-    result.warnings?.length === 0
-      ? ""
-      : `\n## 警告\n${result.warnings
-          ?.map((warning) => {
-            const title = warning.title || "";
-            const detail = warning.detail || "";
-            const code = warning.code || "";
-            return `### ${title}\n* **詳細:** ${detail}\n* **コード:** ${code}\n`;
-          })
-          .join("\n")}`;
+      responseText += `\n\n### 集計結果\n`;
+      for (const [key, value] of Object.entries(bucket.computes || {})) {
+        responseText += `\n* **${key}:** ${value.description} (${value.type})`;
+      }
+    }
+  }
 
-  return `${searchSummary}${statusSummary}${bucketsSummary}${warningsSummary}`;
+  if (result.warnings && result.warnings.length > 0) {
+    responseText += `\n## 警告\n`;
+    for (const warning of result.warnings) {
+      responseText += `\n### 詳細\n`;
+      responseText += `* **タイトル:** ${warning.title || "不明"}\n`;
+      responseText += `* **詳細:** ${warning.detail || "不明"}\n`;
+      responseText += `* **コード:** ${warning.code || "不明"}\n`;
+    }
+  }
+
+  return responseText;
 };
 
 export const aggregateSpansHandler = async (

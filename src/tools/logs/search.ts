@@ -38,20 +38,6 @@ export const searchLogsZodSchema = z.object({
     .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
-// ログの重要な情報を抽出して簡潔な表示を生成する関数
-const formatLogSummary = (log: Log): string => {
-  const timestamp = log.timestamp
-    ? new Date(log.timestamp).toLocaleString()
-    : "不明な日時";
-  const service = log.service || "不明なサービス";
-  const status = log.status || "不明なステータス";
-  const message = log.message || "メッセージなし";
-
-  return `[${timestamp}] ${service} - ${status} - ${message.slice(0, 500)}${
-    message.length > 500 ? "..." : ""
-  }`;
-};
-
 const generateSummaryText = (
   query: string | undefined,
   startDate: Date,
@@ -59,32 +45,67 @@ const generateSummaryText = (
   logs: Log[],
   nextCursor?: string
 ): string => {
-  // 検索条件の概要
-  const searchSummary = `# ログ検索結果\n\n## 検索条件\n* **クエリ:** \`${
-    query || "*"
-  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **取得件数:** ${
-    logs.length
-  }件${logs.length === 0 ? " (該当するログはありませんでした)" : ""}\n`;
+  let responseText = "";
 
-  // 次のページ情報
-  const paginationInfo = nextCursor
-    ? `\n## ページング\n* **次のページカーソル:** \`${nextCursor}\`\n`
-    : "";
+  responseText += "# ログ検索結果\n\n";
+  responseText += "## 検索条件\n";
+  responseText += `* **クエリ:** \`${query || "*"}\`\n`;
+  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* **取得件数:** ${logs.length}件`;
 
-  // ログのサマリー表示
-  const logSummaries =
-    logs.length === 0
-      ? ""
-      : `\n## ログサマリー\n${logs
-          .map(
-            (log, index) =>
-              `### [${index + 1}] ${
-                log.service || "不明なサービス"
-              }\n${formatLogSummary(log)}\n`
-          )
-          .join("\n")}`;
+  if (logs.length === 0) {
+    return responseText;
+  }
 
-  return `${searchSummary}${paginationInfo}${logSummaries}`;
+  if (nextCursor) {
+    responseText += "\n## ページング\n";
+    responseText += `* **次のページカーソル:** \`${nextCursor}\`\n`;
+  }
+
+  responseText += "\n## ログサマリー\n";
+  const MAX_MESSAGE_LENGTH = 300;
+  for (const [index, log] of logs.entries()) {
+    responseText += `\n### [${index + 1}]`;
+    if (log.service) {
+      responseText += `* **サービス:** ${log.service}\n`;
+    }
+    if (log.tags && log.tags.length > 0) {
+      responseText += `* **タグ:** ${log.tags.join(", ")}\n`;
+    }
+    if (log.timestamp) {
+      responseText += `* **時刻:** ${new Date(
+        log.timestamp
+      ).toLocaleString()}\n`;
+    }
+    if (log.status) {
+      responseText += `* **ステータス:** ${log.status}\n`;
+    }
+    if (log.message) {
+      responseText += `* **メッセージ:** ${log.message.slice(
+        0,
+        MAX_MESSAGE_LENGTH
+      )}${log.message.length > MAX_MESSAGE_LENGTH ? "..." : ""}\n`;
+    }
+    if (log.host) {
+      responseText += `* **ホスト:** ${log.host}\n`;
+    }
+
+    responseText += `\n#### 重要な属性\n`;
+    for (const key of [
+      "http.method",
+      "http.url",
+      "http.status_code",
+      "error",
+    ]) {
+      if (log.attributes && key in log.attributes) {
+        responseText += `* **${key}:** \`${JSON.stringify(
+          log.attributes[key]
+        )}\`\n`;
+      }
+    }
+  }
+
+  return responseText;
 };
 
 export const searchLogsHandler = async (
