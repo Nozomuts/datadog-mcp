@@ -65,6 +65,13 @@ You need to set up Datadog API and application keys:
    pnpm run build
    ```
 
+### Docker Setup
+You can build using Docker with the following command:
+
+```bash
+docker build -t datadog-mcp .
+```
+
 ### Usage with Claude Desktop
 To use this with Claude Desktop, add the following to your `claude_desktop_config.json`:
 
@@ -76,6 +83,23 @@ To use this with Claude Desktop, add the following to your `claude_desktop_confi
       "args": [
         "/path/to/dd-mcp/build/index.js"
       ],
+      "env": {
+        "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
+        "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+      }
+    }
+  }
+}
+```
+
+If you're using Docker, you can configure it like this:
+
+```json
+{
+  "mcpServers": {
+    "datadog": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "datadog-mcp"],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
         "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
@@ -111,6 +135,25 @@ For quick installation in VS Code, configure your settings:
 }
 ```
 
+If you're using Docker, you can configure it like this:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "datadog": {
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "env": {
+          "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
+          "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+        }
+      }
+    }
+  }
+}
+```
+
 Alternatively, you can add this to a `.vscode/mcp.json` file in your workspace (without the `mcp` key):
 
 ```json
@@ -121,6 +164,23 @@ Alternatively, you can add this to a `.vscode/mcp.json` file in your workspace (
       "args": [
         "/path/to/dd-mcp/build/index.js"
       ],
+      "env": {
+        "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
+        "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+      }
+    }
+  }
+}
+```
+
+If you're using Docker, you can configure it like this:
+
+```json
+{
+  "servers": {
+    "datadog": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "datadog-mcp"],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
         "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
@@ -193,6 +253,13 @@ DatadogのAPIキーとアプリケーションキーの設定が必要です：
    pnpm run build
    ```
 
+### Dockerでのセットアップ
+Dockerを使用してセットアップする場合、以下のコマンドでビルドできます：
+
+```bash
+docker build -t datadog-mcp .
+```
+
 ### Claude Desktopでの使用法
 Claude Desktopで使用するには、`claude_desktop_config.json`に以下を追加してください：
 
@@ -204,6 +271,23 @@ Claude Desktopで使用するには、`claude_desktop_config.json`に以下を�
       "args": [
         "/path/to/dd-mcp/build/index.js"
       ],
+      "env": {
+        "DD_API_KEY": "<あなたのDATADOG_APIキー>",
+        "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
+      }
+    }
+  }
+}
+```
+
+Dockerを使用する場合は以下のように設定できます：
+
+```json
+{
+  "mcpServers": {
+    "datadog": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "datadog-mcp"],
       "env": {
         "DD_API_KEY": "<あなたのDATADOG_APIキー>",
         "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
@@ -230,8 +314,27 @@ VS Codeですぐに使用するための設定方法：
           "/path/to/dd-mcp/build/index.js"
         ],
         "env": {
-          "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
-          "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+          "DD_API_KEY": "<あなたのDATADOG_APIキー>",
+          "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
+        }
+      }
+    }
+  }
+}
+```
+
+Dockerを使用する場合は、以下のように設定できます：
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "datadog": {
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "env": {
+          "DD_API_KEY": "<あなたのDATADOG_APIキー>",
+          "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
         }
       }
     }
@@ -250,8 +353,25 @@ VS Codeですぐに使用するための設定方法：
         "/path/to/dd-mcp/build/index.js"
       ],
       "env": {
-        "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
-        "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
+        "DD_API_KEY": "<あなたのDATADOG_APIキー>",
+        "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
+      }
+    }
+  }
+}
+```
+
+Dockerを使用する場合は、以下のように設定できます：
+
+```json
+{
+  "servers": {
+    "datadog": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "datadog-mcp"],
+      "env": {
+        "DD_API_KEY": "<あなたのDATADOG_APIキー>",
+        "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
       }
     }
   }
