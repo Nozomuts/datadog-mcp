@@ -8,6 +8,10 @@
 
 MCP Server for Datadog API, enabling log search, trace span search, and trace span aggregation functionalities.
 
+<a href="https://glama.ai/mcp/servers/@Nozomuts/datadog-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Nozomuts/datadog-mcp/badge" alt="Datadog Server MCP server" />
+</a>
+
 ### Features
 
 - **Log Search**: Search and retrieve logs from Datadog with flexible query options
