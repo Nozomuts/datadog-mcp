@@ -8,40 +8,40 @@ export const aggregateSpansZodSchema = z.object({
     .string()
     .optional()
     .default("*")
-    .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
+    .describe("Query string to search for (optional, default is '*')"),
   filterFrom: z
     .number()
     .optional()
     .default(Date.now() / 1000 - 15 * 60)
     .describe(
-      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
+      "Search start time (UNIX timestamp in seconds, optional, default is 15 minutes ago)"
     ),
   filterTo: z
     .number()
     .optional()
     .default(Date.now() / 1000)
     .describe(
-      "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
+      "Search end time (UNIX timestamp in seconds, optional, default is current time)"
     ),
   groupBy: z
     .array(z.string())
     .optional()
-    .describe("グループ化するための属性（例: ['service', 'resource_name']）"),
+    .describe("Attributes to group by (example: ['service', 'resource_name'])"),
   aggregation: z
     .enum(["count", "avg", "sum", "min", "max", "pct"])
     .default("count")
-    .describe("集計関数（オプション、デフォルトは「count」）"),
+    .describe("Aggregation function (optional, default is 'count')"),
   interval: z
     .string()
     .optional()
     .describe(
-      "結果をグループ化する時間間隔（オプション、typeがtimeseriesの時にのみ指定）"
+      "Time interval to group results by (optional, only used when type is timeseries)"
     ),
   type: z
     .enum(["timeseries", "total"])
     .default("timeseries")
     .describe(
-      "結果タイプ - timeseries または total（オプション、デフォルトは「timeseries」）"
+      "Result type - timeseries or total (optional, default is 'timeseries')"
     ),
 });
 
@@ -50,38 +50,37 @@ const generateSummaryText = (
   result: SpanAggregationResult
 ): string => {
   let responseText = "";
-  // 集計条件のセクションを追加
-  responseText += `# Span集計結果\n`;
-  responseText += `## 集計条件\n`;
-  responseText += `* クエリ: \`${data.filterQuery || "*"}\`\n`;
-  responseText += `* 期間: ${data.filterFrom.toLocaleString()} から ${data.filterTo.toLocaleString()}\n`;
-  responseText += `* グループ化: ${data.groupBy?.join(", ") || "なし"}\n`;
-  responseText += `* 集計関数: ${data.aggregation}\n`;
-  responseText += `* タイプ: ${data.type}\n`;
+  responseText += `# Span Aggregation Results\n`;
+  responseText += `## Aggregation Criteria\n`;
+  responseText += `* Query: \`${data.filterQuery || "*"}\`\n`;
+  responseText += `* Time Range: ${data.filterFrom.toLocaleString()} to ${data.filterTo.toLocaleString()}\n`;
+  responseText += `* Group By: ${data.groupBy?.join(", ") || "none"}\n`;
+  responseText += `* Aggregation Function: ${data.aggregation}\n`;
+  responseText += `* Type: ${data.type}\n`;
   if (data.interval) {
-    responseText += `* インターバル: ${data.interval}\n`;
+    responseText += `* Interval: ${data.interval}\n`;
   }
 
   if (result.status) {
-    responseText += `## ステータス\n`;
-    responseText += `* ステータス: ${result.status || "不明"}\n`;
-    responseText += `* 経過時間: ${result.elapsed || "不明"}\n`;
+    responseText += `## Status\n`;
+    responseText += `* Status: ${result.status || "unknown"}\n`;
+    responseText += `* Elapsed Time: ${result.elapsed || "unknown"}\n`;
   }
 
   if (result.buckets.length > 0) {
-    responseText += `## 集計結果\n`;
+    responseText += `## Aggregation Results\n`;
     for (const bucket of result.buckets) {
-      responseText += `### グループ\n`;
+      responseText += `### Group\n`;
       for (const [key, value] of Object.entries(bucket.by || {})) {
         responseText += `* ${key}: ${value}\n`;
       }
       for (const value of Object.values(bucket.compute || {})) {
         if (data.type === "total") {
-          responseText += `* 集計値: ${value}\n`;
+          responseText += `* Aggregated Value: ${value}\n`;
         } else if (data.type === "timeseries") {
           for (const item of value) {
             if ("value" in item && "time" in item) {
-              responseText += `* 時間: ${item.time}, 集計値: ${item.value}\n`;
+              responseText += `* Time: ${item.time}, Value: ${item.value}\n`;
             }
           }
         }
@@ -90,17 +89,17 @@ const generateSummaryText = (
   }
 
   if (result.warnings && result.warnings.length > 0) {
-    responseText += `## 警告\n`;
+    responseText += `## Warnings\n`;
     for (const warning of result.warnings) {
-      responseText += `### 詳細\n`;
+      responseText += `### Details\n`;
       if (warning.title) {
-        responseText += `* タイトル: ${warning.title}\n`;
+        responseText += `* Title: ${warning.title}\n`;
       }
       if (warning.detail) {
-        responseText += `* 詳細: ${warning.detail}\n`;
+        responseText += `* Detail: ${warning.detail}\n`;
       }
       if (warning.code) {
-        responseText += `* コード: ${warning.code}\n`;
+        responseText += `* Code: ${warning.code}\n`;
       }
     }
   }
@@ -115,12 +114,12 @@ export const aggregateSpansHandler = async (
 
   if (!validation.success) {
     return createErrorResponse(
-      `パラメータ検証エラー: ${validation.error.message}`
+      `Parameter validation error: ${validation.error.message}`
     );
   }
 
   try {
-    // バリデーション後に Date オブジェクトに変換
+    // Convert to Date objects after validation
     const validatedParams = {
       ...validation.data,
       filterFrom: new Date(validation.data.filterFrom * 1000),
@@ -132,6 +131,6 @@ export const aggregateSpansHandler = async (
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`スパン集計エラー: ${errorMessage}`);
+    return createErrorResponse(`Span aggregation error: ${errorMessage}`);
   }
 };

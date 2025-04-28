@@ -17,21 +17,21 @@ const server = new McpServer({
 
 server.tool(
   "search_logs",
-  "Datadogのログを検索するツール",
+  "Tool for searching Datadog logs",
   searchLogsZodSchema.shape,
   searchLogsHandler
 );
 
 server.tool(
   "search_spans",
-  "Datadogのトレースspanを検索するツール",
+  "Tool for searching Datadog trace spans",
   searchSpansZodSchema.shape,
   searchSpansHandler
 );
 
 server.tool(
   "aggregate_spans",
-  "Datadogのトレースspanを集計するツール",
+  "Tool for aggregating Datadog trace spans",
   aggregateSpansZodSchema.shape,
   aggregateSpansHandler
 );
@@ -39,7 +39,7 @@ server.tool(
 const main = async () => {
   if (!process.env.DD_API_KEY || !process.env.DD_APP_KEY) {
     console.error(
-      "警告: Datadog API_KEY または APP_KEY が設定されていません。Datadogツールは正しく機能しない可能性があります。"
+      "Warning: Datadog API_KEY or APP_KEY is not set. Datadog tools may not function correctly."
     );
     return;
   }

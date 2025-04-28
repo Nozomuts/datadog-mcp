@@ -8,22 +8,20 @@ export const searchLogsZodSchema = z.object({
     .string()
     .optional()
     .default("*")
-    .describe(
-      "ログを検索するためのクエリ文字列（オプション、デフォルトは「*」）"
-    ),
+    .describe("Query string to search logs (optional, default is '*')"),
   filterFrom: z
     .number()
     .optional()
     .default(Date.now() / 1000 - 15 * 60)
     .describe(
-      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
+      "Search start time (UNIX timestamp in seconds, optional, default is 15 minutes ago)"
     ),
   filterTo: z
     .number()
     .optional()
     .default(Date.now() / 1000)
     .describe(
-      "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
+      "Search end time (UNIX timestamp in seconds, optional, default is current time)"
     ),
   pageLimit: z
     .number()
@@ -31,11 +29,11 @@ export const searchLogsZodSchema = z.object({
     .max(1000)
     .optional()
     .default(25)
-    .describe("取得するログの最大数（オプション、デフォルトは25）"),
+    .describe("Maximum number of logs to retrieve (optional, default is 25)"),
   pageCursor: z
     .string()
     .optional()
-    .describe("次のページを取得するためのカーソル（オプション）"),
+    .describe("Cursor to retrieve the next page (optional)"),
 });
 
 const generateSummaryText = (
@@ -46,51 +44,49 @@ const generateSummaryText = (
   }
 ): string => {
   let responseText = "";
-
-  responseText += "# ログ検索結果\n";
-  responseText += "## 検索条件\n";
-  responseText += `* クエリ: ${data.filterQuery || "*"}\n`;
-  responseText += `* 期間: ${new Date(data.filterFrom * 1000).toLocaleString()} から ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
-  responseText += `* 取得件数: ${result.logs.length}件\n`;
+  responseText += "# Log Search Results\n";
+  responseText += "## Search Criteria\n";
+  responseText += `* Query: ${data.filterQuery || "*"}\n`;
+  responseText += `* Time Range: ${new Date(
+    data.filterFrom * 1000
+  ).toLocaleString()} to ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
+  responseText += `* Retrieved: ${result.logs.length} logs\n`;
 
   if (result.logs.length === 0) {
     return responseText;
   }
 
   if (result.nextCursor) {
-    responseText += "## ページング\n";
-    responseText += `* 次のページカーソル: ${result.nextCursor}\n`;
+    responseText += "## Pagination\n";
+    responseText += `* Next Page Cursor: ${result.nextCursor}\n`;
   }
 
-  responseText += "## ログサマリー\n";
+  responseText += "## Log Summary\n";
   const MAX_MESSAGE_LENGTH = 300;
   for (const [index, log] of result.logs.entries()) {
     responseText += `### [${index + 1}]\n`;
     if (log.service) {
-      responseText += `* サービス: ${log.service}\n`;
+      responseText += `* Service: ${log.service}\n`;
     }
     if (log.tags && log.tags.length > 0) {
-      responseText += `* タグ: ${log.tags.join(", ")}\n`;
+      responseText += `* Tags: ${log.tags.join(", ")}\n`;
     }
     if (log.timestamp) {
-      responseText += `* 時刻: ${new Date(
-        log.timestamp
-      ).toLocaleString()}\n`;
+      responseText += `* Time: ${new Date(log.timestamp).toLocaleString()}\n`;
     }
     if (log.status) {
-      responseText += `* ステータス: ${log.status}\n`;
+      responseText += `* Status: ${log.status}\n`;
     }
     if (log.message) {
-      responseText += `* メッセージ: ${log.message.slice(
-        0,
-        MAX_MESSAGE_LENGTH
-      )}${log.message.length > MAX_MESSAGE_LENGTH ? "..." : ""}\n`;
+      responseText += `* Message: ${log.message.slice(0, MAX_MESSAGE_LENGTH)}${
+        log.message.length > MAX_MESSAGE_LENGTH ? "..." : ""
+      }\n`;
     }
     if (log.host) {
-      responseText += `* ホスト: ${log.host}\n`;
+      responseText += `* Host: ${log.host}\n`;
     }
 
-    responseText += `#### 重要な属性\n`;
+    responseText += `#### Key Attributes\n`;
     for (const key of [
       "http.method",
       "http.url",
@@ -114,12 +110,12 @@ export const searchLogsHandler = async (
   const validation = searchLogsZodSchema.safeParse(parameters);
   if (!validation.success) {
     return createErrorResponse(
-      `パラメータ検証エラー: ${validation.error.message}`
+      `Parameter validation error: ${validation.error.message}`
     );
   }
 
   try {
-    // バリデーション後に Date オブジェクトに変換
+    // Convert to Date objects after validation
     const validatedParams = {
       ...validation.data,
       filterFrom: new Date(validation.data.filterFrom * 1000),
@@ -128,14 +124,11 @@ export const searchLogsHandler = async (
 
     const result = await searchLogs(validatedParams);
 
-    const summaryText = generateSummaryText(
-      validation.data,
-      result
-    );
+    const summaryText = generateSummaryText(validation.data, result);
 
     return createSuccessResponse([summaryText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`ログ検索エラー: ${errorMessage}`);
+    return createErrorResponse(`Log search error: ${errorMessage}`);
   }
 };

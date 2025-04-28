@@ -8,20 +8,20 @@ export const searchSpansZodSchema = z.object({
     .string()
     .optional()
     .default("*")
-    .describe("検索するためのクエリ文字列（オプション、デフォルトは「*」）"),
+    .describe("Query string to search for (optional, default is '*')"),
   filterFrom: z
     .number()
     .optional()
     .default(Date.now() / 1000 - 15 * 60)
     .describe(
-      "検索開始時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは15分前）"
+      "Search start time (UNIX timestamp in seconds, optional, default is 15 minutes ago)"
     ),
   filterTo: z
     .number()
     .optional()
     .default(Date.now() / 1000)
     .describe(
-      "検索終了時間（UNIXタイムスタンプ、秒単位、オプション、デフォルトは現在時刻）"
+      "Search end time (UNIX timestamp in seconds, optional, default is current time)"
     ),
   pageLimit: z
     .number()
@@ -29,11 +29,11 @@ export const searchSpansZodSchema = z.object({
     .max(1000)
     .optional()
     .default(25)
-    .describe("取得するスパンの最大数（オプション、デフォルトは25）"),
+    .describe("Maximum number of spans to retrieve (optional, default is 25)"),
   pageCursor: z
     .string()
     .optional()
-    .describe("次のページを取得するためのカーソル（オプション）"),
+    .describe("Cursor to retrieve the next page (optional)"),
 });
 
 const generateSummaryText = (
@@ -41,54 +41,56 @@ const generateSummaryText = (
   result: SpanSearchResult
 ): string => {
   let responseText = "";
-  responseText += `# Span検索結果\n`;
-  responseText += `## 検索条件\n`;
-  responseText += `* クエリ: ${data.filterQuery || "*"}\n`;
-  responseText += `* 期間: ${data.filterFrom.toLocaleString()} から ${data.filterTo.toLocaleString()}\n`;
-  responseText += `* 取得件数: ${result.spans.length}件`;
+  responseText += `# Span Search Results\n`;
+  responseText += `## Search Criteria\n`;
+  responseText += `* Query: ${data.filterQuery || "*"}\n`;
+  responseText += `* Time Range: ${data.filterFrom.toLocaleString()} to ${data.filterTo.toLocaleString()}\n`;
+  responseText += `* Retrieved: ${result.spans.length} spans`;
 
   if (result.spans.length === 0) {
     return responseText;
   }
 
   if (result.nextCursor) {
-    responseText += `* 次のページカーソル: ${result.nextCursor}\n`;
+    responseText += `* Next Page Cursor: ${result.nextCursor}\n`;
   }
 
-  responseText += "## Spanサマリー\n";
+  responseText += "## Span Summary\n";
   for (const [index, span] of result.spans.entries()) {
     responseText += `### [${index + 1}]\n`;
     if (span.service) {
-      responseText += `* サービス: ${span.service}\n`;
+      responseText += `* Service: ${span.service}\n`;
     }
 
     if (span.startTimestamp) {
-      responseText += `* 時刻: ${new Date(
+      responseText += `* Time: ${new Date(
         span.startTimestamp
       ).toLocaleString()}\n`;
     }
 
     if (span.resource) {
-      responseText += `* リソース: ${span.resource}\n`;
+      responseText += `* Resource: ${span.resource}\n`;
     }
 
     if (span.duration) {
-      responseText += `* 所要時間: ${(span.duration / 1000).toFixed(3)}秒\n`;
+      responseText += `* Duration: ${(span.duration / 1000).toFixed(
+        3
+      )} seconds\n`;
     }
 
     if (span.host) {
-      responseText += `* ホスト: ${span.host}\n`;
+      responseText += `* Host: ${span.host}\n`;
     }
 
     if (span.env) {
-      responseText += `* 環境: ${span.env}\n`;
+      responseText += `* Environment: ${span.env}\n`;
     }
 
     if (span.type) {
-      responseText += `* タイプ: ${span.type}\n`;
+      responseText += `* Type: ${span.type}\n`;
     }
 
-    responseText += `#### 重要な属性\n`;
+    responseText += `#### Key Attributes\n`;
     for (const key of [
       "http.method",
       "http.url",
@@ -112,12 +114,12 @@ export const searchSpansHandler = async (
   const validation = searchSpansZodSchema.safeParse(parameters);
   if (!validation.success) {
     return createErrorResponse(
-      `パラメータ検証エラー: ${validation.error.message}`
+      `Parameter validation error: ${validation.error.message}`
     );
   }
 
   try {
-    // バリデーション後に Date オブジェクトに変換
+    // Convert to Date objects after validation
     const validatedParams = {
       ...validation.data,
       filterFrom: new Date(validation.data.filterFrom * 1000),
@@ -129,6 +131,6 @@ export const searchSpansHandler = async (
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`スパン検索エラー: ${errorMessage}`);
+    return createErrorResponse(`Span search error: ${errorMessage}`);
   }
 };
