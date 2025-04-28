@@ -52,7 +52,7 @@ MCP Server for Datadog API, enabling log search, trace span search, and trace sp
 You need to set up Datadog API and application keys:
 
 1. Get your API key and application key from the [Datadog API Keys page](https://app.datadoghq.com/organization-settings/api-keys)
-2. Install dependencies in the dd-mcp project:
+2. Install dependencies in the datadog-mcp project:
    ```bash
    npm install
    # or
@@ -81,7 +81,7 @@ To use this with Claude Desktop, add the following to your `claude_desktop_confi
     "datadog": {
       "command": "node",
       "args": [
-        "/path/to/dd-mcp/build/index.js"
+        "/path/to/datadog-mcp/build/index.js"
       ],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
@@ -132,7 +132,7 @@ For quick installation in VS Code, configure your settings:
       "datadog": {
         "command": "node",
         "args": [
-          "/path/to/dd-mcp/build/index.js"
+          "/path/to/datadog-mcp/build/index.js"
         ],
         "env": {
           "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
@@ -180,7 +180,7 @@ Alternatively, you can add this to a `.vscode/mcp.json` file in your workspace (
     "datadog": {
       "command": "node",
       "args": [
-        "/path/to/dd-mcp/build/index.js"
+        "/path/to/datadog-mcp/build/index.js"
       ],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
@@ -267,13 +267,13 @@ DatadogのAPIにアクセスするためのMCPサーバーで、ログ検索、�
 DatadogのAPIキーとアプリケーションキーの設定が必要です：
 
 1. [DatadogのAPIキーページ](https://app.datadoghq.com/organization-settings/api-keys)からAPIキーとアプリケーションキーを取得
-2. dd-mcpで依存関係のインストール：
+2. datadog-mcpで依存関係のインストール：
    ```bash
    npm install
    # または
    pnpm install
    ```
-3. dd-mcpでTypeScriptプロジェクトのビルド：
+3. datadog-mcpでTypeScriptプロジェクトのビルド：
    ```bash
    npm run build
    # または
@@ -296,7 +296,7 @@ Claude Desktopで使用するには、`claude_desktop_config.json`に以下を�
     "datadog": {
       "command": "node",
       "args": [
-        "/path/to/dd-mcp/build/index.js"
+        "/path/to/datadog-mcp/build/index.js"
       ],
       "env": {
         "DD_API_KEY": "<あなたのDATADOG_APIキー>",
@@ -347,7 +347,7 @@ VS Codeですぐに使用するための設定方法：
       "datadog": {
         "command": "node",
         "args": [
-          "/path/to/dd-mcp/build/index.js"
+          "/path/to/datadog-mcp/build/index.js"
         ],
         "env": {
           "DD_API_KEY": "<あなたのDATADOG_APIキー>",
@@ -395,7 +395,7 @@ Dockerを使用する場合は、以下のように設定できます：
     "datadog": {
       "command": "node",
       "args": [
-        "/path/to/dd-mcp/build/index.js"
+        "/path/to/datadog-mcp/build/index.js"
       ],
       "env": {
         "DD_API_KEY": "<あなたのDATADOG_APIキー>",
