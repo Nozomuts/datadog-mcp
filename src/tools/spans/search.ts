@@ -45,51 +45,51 @@ const generateSummaryText = (
   let responseText = "";
   responseText += `# Span検索結果\n\n`;
   responseText += `## 検索条件\n`;
-  responseText += `* **クエリ:** ${query || "*"}\n`;
-  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* **取得件数:** ${result.spans.length}件`;
+  responseText += `* クエリ: ${query || "*"}\n`;
+  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* 取得件数: ${result.spans.length}件`;
 
   if (result.spans.length === 0) {
     return responseText;
   }
 
   if (result.nextCursor) {
-    responseText += `\n* **次のページカーソル:** \`${result.nextCursor}\`\n`;
+    responseText += `\n* 次のページカーソル: \`${result.nextCursor}\`\n`;
   }
 
   responseText += "\n## Spanサマリー\n\n";
   for (const [index, span] of result.spans.entries()) {
     responseText += `\n### [${index + 1}]`;
     if (span.service) {
-      responseText += `* **サービス:** ${span.service}\n`;
+      responseText += `* サービス: ${span.service}\n`;
     }
 
     if (span.startTimestamp) {
-      responseText += `* **時刻:** ${new Date(
+      responseText += `* 時刻: ${new Date(
         span.startTimestamp
       ).toLocaleString()}\n`;
     }
 
     if (span.resource) {
-      responseText += `* **リソース:** ${span.resource}\n`;
+      responseText += `* リソース: ${span.resource}\n`;
     }
 
     if (span.duration) {
-      responseText += `* **所要時間:** ${(span.duration / 1000).toFixed(
+      responseText += `* 所要時間: ${(span.duration / 1000).toFixed(
         3
       )}秒\n`;
     }
 
     if (span.host) {
-      responseText += `* **ホスト:** ${span.host}\n`;
+      responseText += `* ホスト: ${span.host}\n`;
     }
 
     if (span.env) {
-      responseText += `* **環境:** ${span.env}\n`;
+      responseText += `* 環境: ${span.env}\n`;
     }
 
     if (span.type) {
-      responseText += `* **タイプ:** ${span.type}\n`;
+      responseText += `* タイプ: ${span.type}\n`;
     }
 
     responseText += `\n#### 重要な属性\n`;
@@ -100,7 +100,7 @@ const generateSummaryText = (
       "error",
     ]) {
       if (span.attributes && key in span.attributes) {
-        responseText += `* **${key}:** \`${JSON.stringify(
+        responseText += `* ${key}: \`${JSON.stringify(
           span.attributes[key]
         )}\`\n`;
       }

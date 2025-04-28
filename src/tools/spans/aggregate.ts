@@ -56,28 +56,28 @@ const generateSummaryText = (
   // 集計条件のセクションを追加
   responseText += `# Span集計結果\n\n`;
   responseText += `## 集計条件\n`;
-  responseText += `* **クエリ:** \`${query || "*"}\`\n`;
-  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* **グループ化:** ${groupBy?.join(", ") || "なし"}\n`;
-  responseText += `* **集計関数:** ${aggregation}\n\n`;
+  responseText += `* クエリ: \`${query || "*"}\`\n`;
+  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* グループ化: ${groupBy?.join(", ") || "なし"}\n`;
+  responseText += `* 集計関数: ${aggregation}\n\n`;
 
   if (result.status) {
     responseText += `## ステータス\n`;
-    responseText += `* **ステータス:** ${result.status || "不明"}\n`;
-    responseText += `* **経過時間:** ${result.elapsed || "不明"}\n\n`;
+    responseText += `* ステータス: ${result.status || "不明"}\n`;
+    responseText += `* 経過時間: ${result.elapsed || "不明"}\n\n`;
   }
 
   if (result.buckets.length > 0) {
     responseText += `## 集計結果\n`;
     for (const bucket of result.buckets) {
-      responseText += `\n### グループ化\n`;
+      responseText += `\n### グループ\n`;
       for (const [key, value] of Object.entries(bucket.by || {})) {
-        responseText += `\n* **${key}:** ${value}`;
+        responseText += `\n* ${key}: ${value}`;
       }
 
       responseText += `\n\n### 集計結果\n`;
       for (const [key, value] of Object.entries(bucket.computes || {})) {
-        responseText += `\n* **${key}:** ${value.description} (${value.type})`;
+        responseText += `\n* ${key}: ${value.description} (${value.type})`;
       }
     }
   }
@@ -86,9 +86,9 @@ const generateSummaryText = (
     responseText += `\n## 警告\n`;
     for (const warning of result.warnings) {
       responseText += `\n### 詳細\n`;
-      responseText += `* **タイトル:** ${warning.title || "不明"}\n`;
-      responseText += `* **詳細:** ${warning.detail || "不明"}\n`;
-      responseText += `* **コード:** ${warning.code || "不明"}\n`;
+      responseText += `* タイトル: ${warning.title || "不明"}\n`;
+      responseText += `* 詳細: ${warning.detail || "不明"}\n`;
+      responseText += `* コード: ${warning.code || "不明"}\n`;
     }
   }
 

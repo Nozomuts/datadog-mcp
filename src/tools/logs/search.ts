@@ -49,9 +49,9 @@ const generateSummaryText = (
 
   responseText += "# ログ検索結果\n\n";
   responseText += "## 検索条件\n";
-  responseText += `* **クエリ:** \`${query || "*"}\`\n`;
-  responseText += `* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* **取得件数:** ${logs.length}件`;
+  responseText += `* クエリ: \`${query || "*"}\`\n`;
+  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* 取得件数: ${logs.length}件`;
 
   if (logs.length === 0) {
     return responseText;
@@ -59,7 +59,7 @@ const generateSummaryText = (
 
   if (nextCursor) {
     responseText += "\n## ページング\n";
-    responseText += `* **次のページカーソル:** \`${nextCursor}\`\n`;
+    responseText += `* 次のページカーソル: \`${nextCursor}\`\n`;
   }
 
   responseText += "\n## ログサマリー\n";
@@ -67,27 +67,27 @@ const generateSummaryText = (
   for (const [index, log] of logs.entries()) {
     responseText += `\n### [${index + 1}]`;
     if (log.service) {
-      responseText += `* **サービス:** ${log.service}\n`;
+      responseText += `* サービス: ${log.service}\n`;
     }
     if (log.tags && log.tags.length > 0) {
-      responseText += `* **タグ:** ${log.tags.join(", ")}\n`;
+      responseText += `* タグ: ${log.tags.join(", ")}\n`;
     }
     if (log.timestamp) {
-      responseText += `* **時刻:** ${new Date(
+      responseText += `* 時刻: ${new Date(
         log.timestamp
       ).toLocaleString()}\n`;
     }
     if (log.status) {
-      responseText += `* **ステータス:** ${log.status}\n`;
+      responseText += `* ステータス: ${log.status}\n`;
     }
     if (log.message) {
-      responseText += `* **メッセージ:** ${log.message.slice(
+      responseText += `* メッセージ: ${log.message.slice(
         0,
         MAX_MESSAGE_LENGTH
       )}${log.message.length > MAX_MESSAGE_LENGTH ? "..." : ""}\n`;
     }
     if (log.host) {
-      responseText += `* **ホスト:** ${log.host}\n`;
+      responseText += `* ホスト: ${log.host}\n`;
     }
 
     responseText += `\n#### 重要な属性\n`;
@@ -98,7 +98,7 @@ const generateSummaryText = (
       "error",
     ]) {
       if (log.attributes && key in log.attributes) {
-        responseText += `* **${key}:** \`${JSON.stringify(
+        responseText += `* ${key}: \`${JSON.stringify(
           log.attributes[key]
         )}\`\n`;
       }
