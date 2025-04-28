@@ -24,7 +24,25 @@ export const aggregateSpansZodSchema = z.object({
       "Search end time (UNIX timestamp in seconds, optional, default is current time)"
     ),
   groupBy: z
-    .array(z.string())
+    .array(
+      z.enum([
+        "service",
+        "resource_name",
+        "env",
+        "status",
+        "operation_name",
+        "type",
+        "@version",
+        "@http.status",
+        "@http.client_ip",
+        "@http.url",
+        "@http.method",
+        "@http.host",
+        "@http.user_agent",
+        "@http.path_group",
+        "@http.route",
+      ])
+    )
     .optional()
     .describe("Attributes to group by (example: ['service', 'resource_name'])"),
   interval: z
