@@ -46,7 +46,6 @@ const main = async () => {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("Datadog MCP Server が stdio で動作中");
 };
 
 main().catch((error) => {
