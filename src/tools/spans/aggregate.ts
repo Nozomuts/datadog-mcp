@@ -34,8 +34,9 @@ export const aggregateSpansZodSchema = z.object({
   interval: z
     .string()
     .optional()
-    .default("5m")
-    .describe("結果をグループ化する時間間隔（オプション、デフォルト 「5m」）"),
+    .describe(
+      "結果をグループ化する時間間隔（オプション、typeがtimeseriesの時にのみ指定）"
+    ),
   type: z
     .enum(["timeseries", "total"])
     .default("timeseries")

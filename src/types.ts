@@ -58,7 +58,7 @@ export type SpanAggregationParams = {
   filterTo: Date;
   groupBy?: string[];
   aggregation: string;
-  interval: string;
+  interval?: string;
   type: "timeseries" | "total";
 };
 
