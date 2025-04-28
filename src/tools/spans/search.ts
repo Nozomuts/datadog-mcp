@@ -44,7 +44,9 @@ const generateSummaryText = (
   responseText += `# Span Search Results\n`;
   responseText += `## Search Criteria\n`;
   responseText += `* Query: ${data.filterQuery || "*"}\n`;
-  responseText += `* Time Range: ${data.filterFrom.toLocaleString()} to ${data.filterTo.toLocaleString()}\n`;
+  responseText += `* Time Range: ${new Date(
+    data.filterFrom * 1000
+  ).toLocaleString()} to ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
   responseText += `* Retrieved: ${result.spans.length} spans`;
 
   if (result.spans.length === 0) {

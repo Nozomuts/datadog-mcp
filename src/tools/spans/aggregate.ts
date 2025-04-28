@@ -53,7 +53,9 @@ const generateSummaryText = (
   responseText += `# Span Aggregation Results\n`;
   responseText += `## Aggregation Criteria\n`;
   responseText += `* Query: \`${data.filterQuery || "*"}\`\n`;
-  responseText += `* Time Range: ${data.filterFrom.toLocaleString()} to ${data.filterTo.toLocaleString()}\n`;
+  responseText += `* Time Range: ${new Date(
+    data.filterFrom * 1000
+  ).toLocaleString()} to ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
   responseText += `* Group By: ${data.groupBy?.join(", ") || "none"}\n`;
   responseText += `* Aggregation Function: ${data.aggregation}\n`;
   responseText += `* Type: ${data.type}\n`;
