@@ -2,7 +2,6 @@ import { z } from "zod";
 import { aggregateSpans } from "../../datadog/spans/aggregate.js";
 import { createSuccessResponse, createErrorResponse } from "../../utils.js";
 import type { SpanAggregationResult, ToolResponse } from "../../types.js";
-import { JS } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v1/models/SyntheticsBrowserErrorType.js";
 
 export const aggregateSpansZodSchema = z.object({
   filterQuery: z
@@ -36,7 +35,7 @@ export const aggregateSpansZodSchema = z.object({
     .string()
     .optional()
     .default("5m")
-    .describe("結果をグループ化する時間間隔（オプション、デフォルト '5m'）"),
+    .describe("結果をグループ化する時間間隔（オプション、デフォルト 「5m」）"),
   type: z
     .enum(["timeseries", "total"])
     .default("timeseries")
@@ -71,14 +70,16 @@ const generateSummaryText = (
   if (result.buckets.length > 0) {
     responseText += `## 集計結果\n`;
     for (const bucket of result.buckets) {
-      responseText += `### グループ条件\n`;
+      responseText += `### グループ\n`;
       for (const [key, value] of Object.entries(bucket.by || {})) {
         responseText += `* ${key}: ${value}\n`;
       }
-
-      responseText += `### 結果\n`;
-      for (const [key, value] of Object.entries(bucket.computes || {})) {
-        responseText += `* ${key}: ${value.description} (${value.type})\n`;
+      for (const value of Object.values(bucket.compute || {})) {
+        for (const item of value || []) {
+          if ("value" in item && "time" in item) {
+            responseText += `* 集計値: ${item.value}, 時間: ${item.time}\n`;
+          }
+        }
       }
     }
   }

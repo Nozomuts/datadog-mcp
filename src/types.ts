@@ -74,7 +74,6 @@ export type SpanBucket = {
   id: string;
   by?: Record<string, string>;
   compute?: Record<string, any>;
-  computes?: Record<string, { description?: string; type?: string }>;
 };
 
 export type SpanWarning = {

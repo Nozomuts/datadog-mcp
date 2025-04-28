@@ -54,17 +54,7 @@ export const aggregateSpans = async (
       id: bucket.id || "",
       by: bucket.attributes?.by || {},
       compute: bucket.attributes?.compute || {},
-      computes: bucket.attributes?.computes
-        ? Object.fromEntries(
-            Object.entries(bucket.attributes.computes).map(([key, value]) => [
-              key,
-              {
-                description: String(value),
-                type: typeof value,
-              },
-            ])
-          )
-        : {},
+      computes: bucket.attributes?.computes || {},
     }));
 
     return {
