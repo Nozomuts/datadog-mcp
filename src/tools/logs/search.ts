@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { searchLogs } from "../../datadog/logs/search.js";
 import { createErrorResponse, createSuccessResponse } from "../../utils.js";
-import type { LogSearchResult, ToolResponse } from "../../types.js";
+import type { Log, ToolResponse } from "../../types.js";
 
 export const searchLogsZodSchema = z.object({
   filterQuery: z
@@ -38,41 +38,53 @@ export const searchLogsZodSchema = z.object({
     .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
-const formatLogs = (result: LogSearchResult): string => {
-  const { logs, nextCursor } = result;
+// ログの重要な情報を抽出して簡潔な表示を生成する関数
+const formatLogSummary = (log: Log): string => {
+  const timestamp = log.timestamp
+    ? new Date(log.timestamp).toLocaleString()
+    : "不明な日時";
+  const service = log.service || "不明なサービス";
+  const status = log.status || "不明なステータス";
+  const message = log.message || "メッセージなし";
 
-  if (logs.length === 0) {
-    return "該当するログが見つかりませんでした。";
-  }
-
-  let response = logs
-    .map((log) => {
-      const timestamp = log.timestamp
-        ? new Date(log.timestamp).toLocaleString("ja-JP")
-        : "日時不明";
-
-      return `[${timestamp}] ${log.service || "不明"} - ${
-        log.host || "不明"
-      }: ${log.message || "メッセージなし"}`;
-    })
-    .join("\n\n");
-
-  if (nextCursor) {
-    response += `\n\n次のページを取得するには cursor="${nextCursor}" を指定してください。`;
-  }
-
-  return response;
+  return `[${timestamp}] ${service} - ${status} - ${message.slice(0, 500)}${
+    message.length > 500 ? "..." : ""
+  }`;
 };
 
 const generateSummaryText = (
   query: string | undefined,
   startDate: Date,
   endDate: Date,
-  logsCount: number
+  logs: Log[],
+  nextCursor?: string
 ): string => {
-  return `クエリ: ${query || "*"}\n検索期間: ${startDate.toLocaleString(
-    "ja-JP"
-  )} から ${endDate.toLocaleString("ja-JP")}\n取得件数: ${logsCount}`;
+  // 検索条件の概要
+  const searchSummary = `# ログ検索結果\n\n## 検索条件\n* **クエリ:** \`${
+    query || "*"
+  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **取得件数:** ${
+    logs.length
+  }件${logs.length === 0 ? " (該当するログはありませんでした)" : ""}\n`;
+
+  // 次のページ情報
+  const paginationInfo = nextCursor
+    ? `\n## ページング\n* **次のページカーソル:** \`${nextCursor}\`\n`
+    : "";
+
+  // ログのサマリー表示
+  const logSummaries =
+    logs.length === 0
+      ? ""
+      : `\n## ログサマリー\n${logs
+          .map(
+            (log, index) =>
+              `### [${index + 1}] ${
+                log.service || "不明なサービス"
+              }\n${formatLogSummary(log)}\n`
+          )
+          .join("\n")}`;
+
+  return `${searchSummary}${paginationInfo}${logSummaries}`;
 };
 
 export const searchLogsHandler = async (
@@ -99,16 +111,11 @@ export const searchLogsHandler = async (
       validatedParams.filterQuery,
       validatedParams.filterFrom,
       validatedParams.filterTo,
-      result.logs.length
+      result.logs,
+      result.nextCursor
     );
-    const formattedLogs = formatLogs(result);
 
-    return createSuccessResponse([
-      summaryText,
-      formattedLogs,
-      "詳細なログデータ:",
-      JSON.stringify(result.logs, null, 2),
-    ]);
+    return createSuccessResponse([summaryText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`ログ検索エラー: ${errorMessage}`);

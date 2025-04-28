@@ -44,53 +44,52 @@ export const aggregateSpansZodSchema = z.object({
     ),
 });
 
-const formatAggregationResult = (result: SpanAggregationResult): string => {
-  if (result.buckets.length === 0) {
-    return "集計条件に一致するspanが見つかりませんでした。";
-  }
+const generateSummaryText = (
+  query: string | undefined,
+  startDate: Date,
+  endDate: Date,
+  groupBy: string[] | undefined,
+  aggregation: string,
+  result: SpanAggregationResult
+): string => {
+  const searchSummary = `# Span集計結果\n\n## 集計条件\n* **クエリ:** \`${
+    query || "*"
+  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **グループ化:** ${
+    groupBy?.join(", ") || "なし"
+  }\n* **集計関数:** ${aggregation}\n`;
 
-  let response = `${result.buckets.length}件のバケットが見つかりました。\n`;
+  const statusSummary = `\n## ステータス\n* **ステータス:** ${
+    result.status || "不明"
+  }\n* **経過時間:** ${result.elapsed || "不明"}\n`;
 
-  if (result.status) {
-    response += `ステータス: ${result.status}\n`;
-  }
+  const bucketsSummary =
+    result.buckets.length === 0
+      ? "該当するスパンはありませんでした。"
+      : result.buckets
+          .map((bucket) => {
+            const groupByValues = Object.entries(bucket.by || {})
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ");
+            const computeValues = Object.entries(bucket.compute || {})
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ");
+            return `### グループ化: ${groupByValues}\n* **集計結果:** ${computeValues}\n`;
+          })
+          .join("\n");
 
-  if (result.elapsed) {
-    response += `処理時間: ${result.elapsed}ms\n`;
-  }
+  const warningsSummary =
+    result.warnings?.length === 0
+      ? ""
+      : `\n## 警告\n${result.warnings
+          ?.map((warning) => {
+            const title = warning.title || "";
+            const detail = warning.detail || "";
+            const code = warning.code || "";
+            return `### ${title}\n* **詳細:** ${detail}\n* **コード:** ${code}\n`;
+          })
+          .join("\n")}`;
 
-  response += "\n集計結果:\n";
-
-  result.buckets.forEach((bucket, index) => {
-    response += `[${index + 1}] ID: ${bucket.id}\n`;
-
-    if (bucket.by && Object.keys(bucket.by).length > 0) {
-      response += "グループ条件:\n";
-      Object.entries(bucket.by).forEach(([key, value]) => {
-        response += `  ${key}: ${value}\n`;
-      });
-    }
-
-    if (bucket.compute && Object.keys(bucket.compute).length > 0) {
-      response += "集計値:\n";
-      Object.entries(bucket.compute).forEach(([key, value]) => {
-        response += `  ${key}: ${value}\n`;
-      });
-    }
-
-    response += "\n";
-  });
-
-  if (result.warnings && result.warnings.length > 0) {
-    response += "\n警告:\n";
-    result.warnings.forEach((warning) => {
-      if (warning.title) response += `- ${warning.title}\n`;
-      if (warning.detail) response += `  詳細: ${warning.detail}\n`;
-      if (warning.code) response += `  コード: ${warning.code}\n`;
-    });
-  }
-
-  return response;
+  return `${searchSummary}${statusSummary}${bucketsSummary}${warningsSummary}`;
 };
 
 export const aggregateSpansHandler = async (
@@ -113,7 +112,14 @@ export const aggregateSpansHandler = async (
     };
 
     const result = await aggregateSpans(validatedParams);
-    const formattedResult = formatAggregationResult(result);
+    const formattedResult = generateSummaryText(
+      validation.data.filterQuery,
+      validatedParams.filterFrom,
+      validatedParams.filterTo,
+      validatedParams.groupBy,
+      validation.data.aggregation,
+      result
+    );
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);

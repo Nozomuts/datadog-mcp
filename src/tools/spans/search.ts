@@ -36,45 +36,69 @@ export const searchSpansZodSchema = z.object({
     .describe("次のページを取得するためのカーソル（オプション）"),
 });
 
-const formatSpansResult = (result: SpanSearchResult): string => {
-  const { spans, nextCursor } = result;
+const formatSpansResult = (
+  result: SpanSearchResult,
+  query: string | undefined,
+  startDate: Date,
+  endDate: Date
+): string => {
+  const searchSummary = `# Span検索結果\n\n## 検索条件\n* **クエリ:** \`${
+    query || "*"
+  }\`\n* **期間:** ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n* **取得件数:** ${
+    result.spans.length
+  }件${result.spans.length === 0 ? " (該当するSpanはありませんでした)" : ""}\n`;
 
-  if (spans.length === 0) {
-    return "検索条件に一致するspanが見つかりませんでした。";
+  const paginationInfo = result.nextCursor
+    ? `\n## ページング\n* **次のページカーソル:** \`${result.nextCursor}\`\n`
+    : "";
+
+  if (result.spans.length === 0) {
+    return searchSummary;
   }
 
-  let response = `${spans.length}件のspanが見つかりました。\n\n`;
+  const spanSummaries = result.spans
+    .map((span, index) => {
+      const timestamp = span.startTimestamp
+        ? new Date(span.startTimestamp).toLocaleString()
+        : "不明な日時";
+      const service = span.service || "不明なサービス";
+      const resource = span.resource || "不明なリソース";
+      const duration = span.duration
+        ? `${(span.duration / 1000).toFixed(3)}秒`
+        : "不明な所要時間";
+      const host = span.host || "不明なホスト";
+      const env = span.env || "不明な環境";
+      const type = span.type || "不明なタイプ";
 
-  spans.forEach((span, index) => {
-    response += `[${index + 1}] ID: ${span.id}\n`;
-    if (span.traceId) response += `Trace ID: ${span.traceId}\n`;
-    if (span.spanId) response += `Span ID: ${span.spanId}\n`;
-    if (span.parentId) response += `Parent ID: ${span.parentId}\n`;
-    if (span.service) response += `Service: ${span.service}\n`;
-    if (span.resource) response += `Resource: ${span.resource}\n`;
-    if (span.host) response += `Host: ${span.host}\n`;
-    if (span.env) response += `Environment: ${span.env}\n`;
-    if (span.startTimestamp) response += `Start Time: ${span.startTimestamp}\n`;
-    if (span.endTimestamp) response += `End Time: ${span.endTimestamp}\n`;
-    if (span.duration) response += `Duration: ${span.duration}ms\n`;
-    if (span.type) response += `Type: ${span.type}\n`;
+      let summary = `### [${index + 1}] ${service}\n`;
+      summary += `* **時刻:** ${timestamp}\n`;
+      summary += `* **リソース:** ${resource}\n`;
+      summary += `* **所要時間:** ${duration}\n`;
+      summary += `* **Trace ID:** \`${span.traceId || "N/A"}\`\n`;
+      summary += `* **ホスト:** ${host}\n`;
+      summary += `* **環境:** ${env}\n`;
+      summary += `* **タイプ:** ${type}\n`;
 
-    if (span.tags && span.tags.length > 0) {
-      response += `Tags: ${span.tags.join(", ")}\n`;
-    }
+      // 重要な属性があれば表示
+      if (span.attributes && Object.keys(span.attributes).length > 0) {
+        const importantAttrs = ["http.method", "http.status_code", "error"];
+        const displayAttrs = importantAttrs
+          .filter((key) => key in span.attributes!)
+          .map(
+            (key) => `* **${key}:** \`${JSON.stringify(span.attributes![key])}\``
+          )
+          .join("\n");
 
-    if (span.attributes && Object.keys(span.attributes).length > 0) {
-      response += `Attributes: ${JSON.stringify(span.attributes, null, 2)}\n`;
-    }
+        if (displayAttrs) {
+          summary += `\n#### 重要な属性\n${displayAttrs}\n`;
+        }
+      }
 
-    response += "\n";
-  });
+      return summary;
+    })
+    .join("\n\n");
 
-  if (nextCursor) {
-    response += `次のページを取得するには cursor="${nextCursor}" を指定してください。`;
-  }
-
-  return response;
+  return `${searchSummary}${paginationInfo}\n## Spanサマリー\n\n${spanSummaries}`;
 };
 
 export const searchSpansHandler = async (
@@ -96,7 +120,12 @@ export const searchSpansHandler = async (
     };
 
     const result = await searchSpans(validatedParams);
-    const formattedResult = formatSpansResult(result);
+    const formattedResult = formatSpansResult(
+      result,
+      validatedParams.filterQuery,
+      validatedParams.filterFrom,
+      validatedParams.filterTo
+    );
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
