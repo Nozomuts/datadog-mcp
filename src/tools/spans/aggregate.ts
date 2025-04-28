@@ -27,10 +27,6 @@ export const aggregateSpansZodSchema = z.object({
     .array(z.string())
     .optional()
     .describe("Attributes to group by (example: ['service', 'resource_name'])"),
-  aggregation: z
-    .enum(["count", "avg", "sum", "min", "max", "pct"])
-    .default("count")
-    .describe("Aggregation function (optional, default is 'count')"),
   interval: z
     .string()
     .optional()
@@ -57,7 +53,6 @@ const generateSummaryText = (
     data.filterFrom * 1000
   ).toLocaleString()} to ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
   responseText += `* Group By: ${data.groupBy?.join(", ") || "none"}\n`;
-  responseText += `* Aggregation Function: ${data.aggregation}\n`;
   responseText += `* Type: ${data.type}\n`;
   if (data.interval) {
     responseText += `* Interval: ${data.interval}\n`;
