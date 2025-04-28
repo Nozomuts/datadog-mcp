@@ -125,8 +125,10 @@ export const searchLogsHandler = async (
     const result = await searchLogs(validatedParams);
 
     const summaryText = generateSummaryText(validation.data, result);
-
-    return createSuccessResponse([summaryText]);
+    const urlText = `[View in Datadog](https://app.datadoghq.com/logs?query=${encodeURIComponent(
+      validation.data.filterQuery
+    )}&start=${validation.data.filterFrom}&end=${validation.data.filterTo})`;
+    return createSuccessResponse([summaryText, urlText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`Log search error: ${errorMessage}`);

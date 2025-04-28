@@ -130,7 +130,14 @@ export const aggregateSpansHandler = async (
 
     const result = await aggregateSpans(validatedParams);
     const formattedResult = generateSummaryText(validation.data, result);
-    return createSuccessResponse([formattedResult]);
+    const urlText = `[View in Datadog](https://app.datadoghq.com/apm/traces?query=${encodeURIComponent(
+      validation.data.filterQuery
+    )}&start=${validation.data.filterFrom}&end=${
+      validation.data.filterTo
+    }&viz=${validation.data.type}&agg_q=${
+      validation.data.groupBy?.join(",") || ""
+    })`;
+    return createSuccessResponse([formattedResult, urlText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`Span aggregation error: ${errorMessage}`);

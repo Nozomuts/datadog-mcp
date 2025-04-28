@@ -130,7 +130,10 @@ export const searchSpansHandler = async (
 
     const result = await searchSpans(validatedParams);
     const formattedResult = generateSummaryText(validation.data, result);
-    return createSuccessResponse([formattedResult]);
+    const urlText = `[View in Datadog](https://app.datadoghq.com/apm/traces?query=${encodeURIComponent(
+      validation.data.filterQuery
+    )}&start=${validation.data.filterFrom}&end=${validation.data.filterTo})`;
+    return createSuccessResponse([formattedResult, urlText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return createErrorResponse(`Span search error: ${errorMessage}`);
