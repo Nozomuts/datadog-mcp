@@ -33,7 +33,7 @@ export const aggregateSpansZodSchema = z.object({
         "operation_name",
         "type",
         "@version",
-        "@http.status",
+        "@http.status_code",
         "@http.client_ip",
         "@http.url",
         "@http.method",
