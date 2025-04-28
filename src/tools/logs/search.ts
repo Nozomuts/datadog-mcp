@@ -39,32 +39,32 @@ export const searchLogsZodSchema = z.object({
 });
 
 const generateSummaryText = (
-  query: string | undefined,
-  startDate: Date,
-  endDate: Date,
-  logs: Log[],
-  nextCursor?: string
+  data: z.infer<typeof searchLogsZodSchema>,
+  result: {
+    logs: Log[];
+    nextCursor?: string;
+  }
 ): string => {
   let responseText = "";
 
   responseText += "# ログ検索結果\n";
   responseText += "## 検索条件\n";
-  responseText += `* クエリ: ${query || "*"}\n`;
-  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* 取得件数: ${logs.length}件\n`;
+  responseText += `* クエリ: ${data.filterQuery || "*"}\n`;
+  responseText += `* 期間: ${new Date(data.filterFrom * 1000).toLocaleString()} から ${new Date(data.filterTo * 1000).toLocaleString()}\n`;
+  responseText += `* 取得件数: ${result.logs.length}件\n`;
 
-  if (logs.length === 0) {
+  if (result.logs.length === 0) {
     return responseText;
   }
 
-  if (nextCursor) {
+  if (result.nextCursor) {
     responseText += "## ページング\n";
-    responseText += `* 次のページカーソル: ${nextCursor}\n`;
+    responseText += `* 次のページカーソル: ${result.nextCursor}\n`;
   }
 
   responseText += "## ログサマリー\n";
   const MAX_MESSAGE_LENGTH = 300;
-  for (const [index, log] of logs.entries()) {
+  for (const [index, log] of result.logs.entries()) {
     responseText += `### [${index + 1}]\n`;
     if (log.service) {
       responseText += `* サービス: ${log.service}\n`;
@@ -129,11 +129,8 @@ export const searchLogsHandler = async (
     const result = await searchLogs(validatedParams);
 
     const summaryText = generateSummaryText(
-      validatedParams.filterQuery,
-      validatedParams.filterFrom,
-      validatedParams.filterTo,
-      result.logs,
-      result.nextCursor
+      validation.data,
+      result
     );
 
     return createSuccessResponse([summaryText]);

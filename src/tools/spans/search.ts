@@ -37,16 +37,14 @@ export const searchSpansZodSchema = z.object({
 });
 
 const generateSummaryText = (
-  result: SpanSearchResult,
-  query: string | undefined,
-  startDate: Date,
-  endDate: Date
+  data: z.infer<typeof searchSpansZodSchema>,
+  result: SpanSearchResult
 ): string => {
   let responseText = "";
   responseText += `# Span検索結果\n`;
   responseText += `## 検索条件\n`;
-  responseText += `* クエリ: ${query || "*"}\n`;
-  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
+  responseText += `* クエリ: ${data.filterQuery || "*"}\n`;
+  responseText += `* 期間: ${data.filterFrom.toLocaleString()} から ${data.filterTo.toLocaleString()}\n`;
   responseText += `* 取得件数: ${result.spans.length}件`;
 
   if (result.spans.length === 0) {
@@ -75,9 +73,7 @@ const generateSummaryText = (
     }
 
     if (span.duration) {
-      responseText += `* 所要時間: ${(span.duration / 1000).toFixed(
-        3
-      )}秒\n`;
+      responseText += `* 所要時間: ${(span.duration / 1000).toFixed(3)}秒\n`;
     }
 
     if (span.host) {
@@ -129,12 +125,7 @@ export const searchSpansHandler = async (
     };
 
     const result = await searchSpans(validatedParams);
-    const formattedResult = generateSummaryText(
-      result,
-      validatedParams.filterQuery,
-      validatedParams.filterFrom,
-      validatedParams.filterTo
-    );
+    const formattedResult = generateSummaryText(validation.data, result);
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
