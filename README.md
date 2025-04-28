@@ -99,7 +99,16 @@ If you're using Docker, you can configure it like this:
   "mcpServers": {
     "datadog": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
         "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
@@ -143,7 +152,16 @@ If you're using Docker, you can configure it like this:
     "servers": {
       "datadog": {
         "command": "docker",
-        "args": ["run", "-i", "--rm", "datadog-mcp"],
+          "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
         "env": {
           "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
           "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
@@ -180,7 +198,16 @@ If you're using Docker, you can configure it like this:
   "servers": {
     "datadog": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
       "env": {
         "DD_API_KEY": "<YOUR_DATADOG_API_KEY>",
         "DD_APP_KEY": "<YOUR_DATADOG_APP_KEY>"
@@ -287,7 +314,16 @@ Dockerを使用する場合は以下のように設定できます：
   "mcpServers": {
     "datadog": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
       "env": {
         "DD_API_KEY": "<あなたのDATADOG_APIキー>",
         "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
@@ -331,7 +367,16 @@ Dockerを使用する場合は、以下のように設定できます：
     "servers": {
       "datadog": {
         "command": "docker",
-        "args": ["run", "-i", "--rm", "datadog-mcp"],
+          "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
         "env": {
           "DD_API_KEY": "<あなたのDATADOG_APIキー>",
           "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
@@ -368,7 +413,16 @@ Dockerを使用する場合は、以下のように設定できます：
   "servers": {
     "datadog": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "datadog-mcp"],
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "DD_API_KEY",
+          "-e",
+          "DD_APP_KEY",
+          "datadog-mcp"
+        ],
       "env": {
         "DD_API_KEY": "<あなたのDATADOG_APIキー>",
         "DD_APP_KEY": "<あなたのDATADOG_APPキー>"
