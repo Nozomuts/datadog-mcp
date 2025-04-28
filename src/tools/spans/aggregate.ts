@@ -134,9 +134,9 @@ export const aggregateSpansHandler = async (
       validation.data.filterQuery
     )}&start=${validation.data.filterFrom}&end=${
       validation.data.filterTo
-    }&viz=${validation.data.type}&agg_q=${
-      validation.data.groupBy?.join(",") || ""
-    })`;
+    }&viz=${
+      validation.data.type === "total" ? "toplist" : validation.data.type
+    }&agg_q=${validation.data.groupBy?.join(",") || ""})`;
     return createSuccessResponse([formattedResult, urlText]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
