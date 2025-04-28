@@ -46,21 +46,21 @@ export const aggregateSpansZodSchema = z.object({
 });
 
 const generateSummaryText = (
-  query: string | undefined,
-  startDate: Date,
-  endDate: Date,
-  groupBy: string[] | undefined,
-  aggregation: string,
+  data: z.infer<typeof aggregateSpansZodSchema>,
   result: SpanAggregationResult
 ): string => {
   let responseText = "";
   // 集計条件のセクションを追加
   responseText += `# Span集計結果\n`;
   responseText += `## 集計条件\n`;
-  responseText += `* クエリ: \`${query || "*"}\`\n`;
-  responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* グループ化: ${groupBy?.join(", ") || "なし"}\n`;
-  responseText += `* 集計関数: ${aggregation}\n`;
+  responseText += `* クエリ: \`${data.filterQuery || "*"}\`\n`;
+  responseText += `* 期間: ${data.filterFrom.toLocaleString()} から ${data.filterTo.toLocaleString()}\n`;
+  responseText += `* グループ化: ${data.groupBy?.join(", ") || "なし"}\n`;
+  responseText += `* 集計関数: ${data.aggregation}\n`;
+  responseText += `* タイプ: ${data.type}\n`;
+  if (data.interval) {
+    responseText += `* インターバル: ${data.interval}\n`;
+  }
 
   if (result.status) {
     responseText += `## ステータス\n`;
@@ -76,9 +76,13 @@ const generateSummaryText = (
         responseText += `* ${key}: ${value}\n`;
       }
       for (const value of Object.values(bucket.compute || {})) {
-        for (const item of value || []) {
-          if ("value" in item && "time" in item) {
-            responseText += `* 集計値: ${item.value}, 時間: ${item.time}\n`;
+        if (data.type === "total") {
+          responseText += `* 集計値: ${value}\n`;
+        } else if (data.type === "timeseries") {
+          for (const item of value) {
+            if ("value" in item && "time" in item) {
+              responseText += `* 時間: ${item.time}, 集計値: ${item.value}\n`;
+            }
           }
         }
       }
@@ -124,14 +128,7 @@ export const aggregateSpansHandler = async (
     };
 
     const result = await aggregateSpans(validatedParams);
-    const formattedResult = generateSummaryText(
-      validation.data.filterQuery,
-      validatedParams.filterFrom,
-      validatedParams.filterTo,
-      validatedParams.groupBy,
-      validation.data.aggregation,
-      result
-    );
+    const formattedResult = generateSummaryText(validation.data, result);
     return createSuccessResponse([formattedResult]);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
