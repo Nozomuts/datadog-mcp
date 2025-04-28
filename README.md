@@ -20,11 +20,22 @@ MCP Server for Datadog API, enabling log search, trace span search, and trace sp
    - Search for logs in Datadog
    - Inputs:
      - `filterQuery` (optional string): Query string to search logs (default: "*")
-     - `filterFrom` (optional number): Search start time as UNIX timestamp in seconds (default: 1 hour ago)
+     - `filterFrom` (optional number): Search start time as UNIX timestamp in seconds (default: 15 minutes ago)
      - `filterTo` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
      - `pageLimit` (optional number): Maximum number of logs to retrieve (default: 25, max: 1000)
      - `pageCursor` (optional string): Pagination cursor for retrieving additional results
-   - Returns: Formatted logs and raw log data
+   - Returns: Formatted text containing:
+     - Search conditions (query and time range)
+     - Number of logs found
+     - Next page cursor (if available)
+     - Log details including:
+       - Service name
+       - Tags
+       - Timestamp
+       - Status
+       - Message (truncated to 300 characters)
+       - Host
+       - Important attributes (http.method, http.url, http.status_code, error)
 
 2. `search_spans`
    - Search for trace spans in Datadog
@@ -34,7 +45,19 @@ MCP Server for Datadog API, enabling log search, trace span search, and trace sp
      - `filterTo` (optional number): Search end time as UNIX timestamp in seconds (default: current time)
      - `pageLimit` (optional number): Maximum number of spans to retrieve (default: 25, max: 1000)
      - `pageCursor` (optional string): Pagination cursor for retrieving additional results
-   - Returns: Formatted span information including trace details, services, and timing data
+   - Returns: Formatted text containing:
+     - Search conditions (query and time range)
+     - Number of spans found
+     - Next page cursor (if available)
+     - Span details including:
+       - Service name
+       - Timestamp
+       - Resource name
+       - Duration (in seconds)
+       - Host
+       - Environment
+       - Type
+       - Important attributes (http.method, http.url, http.status_code, error)
 
 3. `aggregate_spans`
    - Aggregate trace spans in Datadog by specified dimensions
@@ -43,10 +66,19 @@ MCP Server for Datadog API, enabling log search, trace span search, and trace sp
      - `filterFrom` (optional number): Start time as UNIX timestamp in seconds (default: 15 minutes ago)
      - `filterTo` (optional number): End time as UNIX timestamp in seconds (default: current time)
      - `groupBy` (optional string[]): Dimensions to group by (e.g., ["service", "resource_name", "status"])
-     - `aggregation` (optional string): Aggregation method (default: "count")
-     - `interval` (optional string): Time interval for time series data (default: "5m")
+     - `aggregation` (optional string): Aggregation method - "count", "avg", "sum", "min", "max", "pct" (default: "count")
+     - `interval` (optional string): Time interval for time series data (only when type is "timeseries")
      - `type` (optional string): Result type, either "timeseries" or "total" (default: "timeseries")
-   - Returns: Aggregated span data in buckets with computation results
+   - Returns: Formatted text containing:
+     - Aggregation results in buckets, each including:
+       - Bucket ID
+       - Group by values (if groupBy is specified)
+       - Computed values based on the aggregation method
+     - Additional metadata:
+       - Processing time (elapsed)
+       - Request ID
+       - Status
+       - Warnings (if any)
 
 ## Setup
 You need to set up Datadog API and application keys:
@@ -235,7 +267,7 @@ DatadogのAPIにアクセスするためのMCPサーバーで、ログ検索、�
    - Datadogのログを検索するツール
    - 入力パラメータ:
      - `filterQuery` (任意, 文字列): ログ検索用クエリ文字列（デフォルト: "*"）
-     - `filterFrom` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 1時間前）
+     - `filterFrom` (任意, 数値): 検索開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
      - `filterTo` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
      - `pageLimit` (任意, 数値): 取得するログの最大数（デフォルト: 25、最大: 1000）
      - `pageCursor` (任意, 文字列): 追加結果を取得するためのページネーションカーソル
@@ -249,7 +281,7 @@ DatadogのAPIにアクセスするためのMCPサーバーで、ログ検索、�
      - `filterTo` (任意, 数値): 検索終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
      - `pageLimit` (任意, 数値): 取得するスパンの最大数（デフォルト: 25、最大: 1000）
      - `pageCursor` (任意, 文字列): 追加結果を取得するためのページネーションカーソル
-   - 戻り値: トレース詳細、サービス、タイミングデータなどを含むフォーマット済みスパン情報
+   - 戻り値: フォーマット済みスパン情報
 
 3. `aggregate_spans`
    - Datadogのトレーススパンを指定された次元で集計するツール
@@ -258,10 +290,19 @@ DatadogのAPIにアクセスするためのMCPサーバーで、ログ検索、�
      - `filterFrom` (任意, 数値): 開始時間（UNIXタイムスタンプ、秒単位、デフォルト: 15分前）
      - `filterTo` (任意, 数値): 終了時間（UNIXタイムスタンプ、秒単位、デフォルト: 現在時刻）
      - `groupBy` (任意, 文字列[]): グループ化する次元（例: ["service", "resource_name", "status"]）
-     - `aggregation` (任意, 文字列): 集計方法（デフォルト: "count"）
-     - `interval` (任意, 文字列): 時系列データの間隔（デフォルト: "5m"）
+     - `aggregation` (任意, 文字列): 集計方法 - "count", "avg", "sum", "min", "max", "pct"（デフォルト: "count"）
+     - `interval` (任意, 文字列): 時系列データの間隔（typeが"timeseries"の時のみ指定）
      - `type` (任意, 文字列): 結果タイプ、"timeseries"または"total"（デフォルト: "timeseries"）
-   - 戻り値: バケット内の集計されたスパンデータと計算結果
+   - 戻り値: フォーマット済みテキスト、含まれるもの：
+     - バケット内の集計結果、各バケットには以下が含まれる：
+       - バケットID
+       - グループ化された値（groupByが指定されている場合）
+       - 集計方法に基づいて計算された値
+     - 追加のメタデータ：
+       - 処理時間（経過時間）
+       - リクエストID
+       - ステータス
+       - 警告（ある場合）
 
 ## セットアップ
 DatadogのAPIキーとアプリケーションキーの設定が必要です：
