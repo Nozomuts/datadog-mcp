@@ -2,6 +2,7 @@ import { z } from "zod";
 import { aggregateSpans } from "../../datadog/spans/aggregate.js";
 import { createSuccessResponse, createErrorResponse } from "../../utils.js";
 import type { SpanAggregationResult, ToolResponse } from "../../types.js";
+import { JS } from "@datadog/datadog-api-client/dist/packages/datadog-api-client-v1/models/SyntheticsBrowserErrorType.js";
 
 export const aggregateSpansZodSchema = z.object({
   filterQuery: z
@@ -54,41 +55,47 @@ const generateSummaryText = (
 ): string => {
   let responseText = "";
   // 集計条件のセクションを追加
-  responseText += `# Span集計結果\n\n`;
+  responseText += `# Span集計結果\n`;
   responseText += `## 集計条件\n`;
   responseText += `* クエリ: \`${query || "*"}\`\n`;
   responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
   responseText += `* グループ化: ${groupBy?.join(", ") || "なし"}\n`;
-  responseText += `* 集計関数: ${aggregation}\n\n`;
+  responseText += `* 集計関数: ${aggregation}\n`;
 
   if (result.status) {
     responseText += `## ステータス\n`;
     responseText += `* ステータス: ${result.status || "不明"}\n`;
-    responseText += `* 経過時間: ${result.elapsed || "不明"}\n\n`;
+    responseText += `* 経過時間: ${result.elapsed || "不明"}\n`;
   }
 
   if (result.buckets.length > 0) {
     responseText += `## 集計結果\n`;
     for (const bucket of result.buckets) {
-      responseText += `\n### グループ\n`;
+      responseText += `### グループ条件\n`;
       for (const [key, value] of Object.entries(bucket.by || {})) {
-        responseText += `\n* ${key}: ${value}`;
+        responseText += `* ${key}: ${value}\n`;
       }
 
-      responseText += `\n\n### 集計結果\n`;
+      responseText += `### 結果\n`;
       for (const [key, value] of Object.entries(bucket.computes || {})) {
-        responseText += `\n* ${key}: ${value.description} (${value.type})`;
+        responseText += `* ${key}: ${value.description} (${value.type})\n`;
       }
     }
   }
 
   if (result.warnings && result.warnings.length > 0) {
-    responseText += `\n## 警告\n`;
+    responseText += `## 警告\n`;
     for (const warning of result.warnings) {
-      responseText += `\n### 詳細\n`;
-      responseText += `* タイトル: ${warning.title || "不明"}\n`;
-      responseText += `* 詳細: ${warning.detail || "不明"}\n`;
-      responseText += `* コード: ${warning.code || "不明"}\n`;
+      responseText += `### 詳細\n`;
+      if (warning.title) {
+        responseText += `* タイトル: ${warning.title}\n`;
+      }
+      if (warning.detail) {
+        responseText += `* 詳細: ${warning.detail}\n`;
+      }
+      if (warning.code) {
+        responseText += `* コード: ${warning.code}\n`;
+      }
     }
   }
 

@@ -43,7 +43,7 @@ const generateSummaryText = (
   endDate: Date
 ): string => {
   let responseText = "";
-  responseText += `# Span検索結果\n\n`;
+  responseText += `# Span検索結果\n`;
   responseText += `## 検索条件\n`;
   responseText += `* クエリ: ${query || "*"}\n`;
   responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
@@ -54,12 +54,12 @@ const generateSummaryText = (
   }
 
   if (result.nextCursor) {
-    responseText += `\n* 次のページカーソル: \`${result.nextCursor}\`\n`;
+    responseText += `* 次のページカーソル: ${result.nextCursor}\n`;
   }
 
-  responseText += "\n## Spanサマリー\n\n";
+  responseText += "## Spanサマリー\n";
   for (const [index, span] of result.spans.entries()) {
-    responseText += `\n### [${index + 1}]`;
+    responseText += `### [${index + 1}]\n`;
     if (span.service) {
       responseText += `* サービス: ${span.service}\n`;
     }
@@ -92,7 +92,7 @@ const generateSummaryText = (
       responseText += `* タイプ: ${span.type}\n`;
     }
 
-    responseText += `\n#### 重要な属性\n`;
+    responseText += `#### 重要な属性\n`;
     for (const key of [
       "http.method",
       "http.url",

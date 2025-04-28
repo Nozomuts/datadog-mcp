@@ -47,25 +47,25 @@ const generateSummaryText = (
 ): string => {
   let responseText = "";
 
-  responseText += "# ログ検索結果\n\n";
+  responseText += "# ログ検索結果\n";
   responseText += "## 検索条件\n";
-  responseText += `* クエリ: \`${query || "*"}\`\n`;
+  responseText += `* クエリ: ${query || "*"}\n`;
   responseText += `* 期間: ${startDate.toLocaleString()} から ${endDate.toLocaleString()}\n`;
-  responseText += `* 取得件数: ${logs.length}件`;
+  responseText += `* 取得件数: ${logs.length}件\n`;
 
   if (logs.length === 0) {
     return responseText;
   }
 
   if (nextCursor) {
-    responseText += "\n## ページング\n";
-    responseText += `* 次のページカーソル: \`${nextCursor}\`\n`;
+    responseText += "## ページング\n";
+    responseText += `* 次のページカーソル: ${nextCursor}\n`;
   }
 
-  responseText += "\n## ログサマリー\n";
+  responseText += "## ログサマリー\n";
   const MAX_MESSAGE_LENGTH = 300;
   for (const [index, log] of logs.entries()) {
-    responseText += `\n### [${index + 1}]`;
+    responseText += `### [${index + 1}]\n`;
     if (log.service) {
       responseText += `* サービス: ${log.service}\n`;
     }
@@ -90,7 +90,7 @@ const generateSummaryText = (
       responseText += `* ホスト: ${log.host}\n`;
     }
 
-    responseText += `\n#### 重要な属性\n`;
+    responseText += `#### 重要な属性\n`;
     for (const key of [
       "http.method",
       "http.url",
